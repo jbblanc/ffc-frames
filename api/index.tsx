@@ -7,9 +7,11 @@ import {
   getPocChallenge,
   getPocFrame,
   updatePocChallengeSteps,
+  updatePocChallengeWithProof,
 } from '../utils/db.js';
 import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
+import { mintProof } from '../utils/phosphor.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -34,9 +36,8 @@ async function handleHome(c: any) {
       frameId = process.env.DEFAULT_POC_FRAME_ID ?? '';
     }
     const pocFrame = await getPocFrame(frameId);
-
     // if custom frame, handle any customisation here
-
+    //....
     return renderHome(c, pocFrame.id);
   } catch (e: any) {
     console.log(e);
@@ -48,9 +49,7 @@ function renderHome(c: FrameContext, frameId: string) {
   const startAction = `/${frameId}/new-challenge`;
   return c.res({
     image: renderTextImage('Home - Start a new Proof challenge'),
-    intents: [
-      <Button action={startAction}>Start</Button>,
-    ],
+    intents: [<Button action={startAction}>Start</Button>],
   });
 }
 
@@ -72,7 +71,9 @@ app.frame('/challenge/:challengeId', async (c) => {
   const { challengeId } = c.req.param();
   try {
     const previousAnswer = buttonValue;
-    console.log(`Received answer: ${previousAnswer} for challenge ${challengeId}`);
+    console.log(
+      `Received answer: ${previousAnswer} for challenge ${challengeId}`,
+    );
     if (!challengeId) {
       // challengeId unset => throw ERROR or show ERROR frame
       throw new Error('Challenge not found');
@@ -81,7 +82,9 @@ app.frame('/challenge/:challengeId', async (c) => {
     let challenge = await getPocChallenge(challengeId);
     // find challenge question to update with previousAnswer
     const answeredQuestion = getPreviousQuestion(challenge);
-    console.log(`Answering step ${answeredQuestion.position} and rendering next step (if any)`);
+    console.log(
+      `Answering step ${answeredQuestion.position} and rendering next step (if any)`,
+    );
     answeredQuestion.selected_answer = previousAnswer;
     answeredQuestion.is_valid_answer =
       answeredQuestion.selected_answer?.toLocaleLowerCase() ===
@@ -93,7 +96,9 @@ app.frame('/challenge/:challengeId', async (c) => {
       (q) => q.selected_answer,
     );
     if (allAnsweredQuestionsSoFar.length === challenge.steps.total_steps) {
-      console.log(`All answers have been given for challenge ${challenge.id}, calculting score`);
+      console.log(
+        `All answers have been given for challenge ${challenge.id}, calculting score`,
+      );
       // calculating score
       let allAnswersAreValid = true;
       challenge.steps.questions.map((q) => {
@@ -127,7 +132,9 @@ function renderChallengeNextStep(
   challenge: ProofOfCrabChallenge,
   stepToRender: number,
 ) {
-  console.log(`Now moving to step ${stepToRender} for challenge ${challenge.id}`);
+  console.log(
+    `Now moving to step ${stepToRender} for challenge ${challenge.id}`,
+  );
   const question = challenge.steps.questions[stepToRender - 1].question;
   const btn1Value = question.proposed_answers[0];
   const btn2Value = question.proposed_answers[1];
@@ -188,11 +195,20 @@ function renderProofMinted(c: FrameContext, challenge: ProofOfCrabChallenge) {
 
 app.frame('/challenge/:challengeId/proof', async (c) => {
   try {
+    const { inputText } = c;
     const { challengeId } = c.req.param();
+    const fid = '1345';
+    const fidWalletAddress = '1345';
     if (!challengeId) {
       throw new Error('Challenge not found');
     }
     let challenge = await getPocChallenge(challengeId);
+    const pocFrame = await getPocFrame(challenge.frame_id);
+    //TODO get FID + wallet address
+    const txHash = await mintProof(pocFrame, inputText ?? fidWalletAddress);
+    challenge.mint_tx_hash = txHash;
+    challenge.has_minted_proof = txHash !== null;
+    await updatePocChallengeWithProof(challenge);
     return renderProofMinted(c, challenge);
   } catch (e: any) {
     console.log(e);

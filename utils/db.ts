@@ -14,11 +14,27 @@ const supabase = createClient(
 export async function getPocFrame(frameId: string): Promise<ProofOfCrabFrame> {
   let { data: poc_frame, error } = await supabase
     .from('poc_frame')
-    .select('*')
+    .select('id,name,security_level,created_at,phosphor_proof_item_id') // ignore phosphor apikey here
     .eq('id', frameId);
   console.log(poc_frame);
   if (poc_frame) {
     return poc_frame[0];
+  } else {
+    throw new Error(`Frame not found or Invalid frame id: ${frameId}`);
+  }
+}
+
+export async function getPocFramePhosphorApiKey(
+  frameId: string,
+): Promise<string> {
+  let { data: poc_frame, error } = await supabase
+    .from('poc_frame')
+    .select('phosphor_api_key')
+    .eq('id', frameId);
+  console.log(error);
+  console.log(poc_frame);
+  if (poc_frame) {
+    return poc_frame[0].phosphor_api_key;
   } else {
     throw new Error(`Frame not found or Invalid frame id: ${frameId}`);
   }
@@ -61,6 +77,25 @@ export async function updatePocChallengeSteps(
   console.log(data);
   console.log(error);
   if (!data) throw new Error('Error while updating challenge steps in DB');
+  return data[0] as ProofOfCrabChallenge;
+}
+
+export async function updatePocChallengeWithProof(
+  challenge: ProofOfCrabChallenge,
+): Promise<ProofOfCrabChallenge> {
+  const { data, error } = await supabase
+    .from('poc_frame_challenge')
+    .update([
+      {
+        has_minted_proof: challenge.has_minted_proof,
+        mint_tx_hash: challenge.mint_tx_hash,
+      },
+    ])
+    .eq('id', challenge.id)
+    .select();
+  console.log(data);
+  console.log(error);
+  if (!data) throw new Error('Error while updating challenge with proof in DB');
   return data[0] as ProofOfCrabChallenge;
 }
 
