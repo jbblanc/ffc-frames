@@ -18,7 +18,7 @@ export async function buildNewChallenge(
       total_steps: questions.length,
     },
   };
-  // store new challenge and return
+  // store new challenge and return it
   return await createPocChallenge(newChallenge);
 }
 

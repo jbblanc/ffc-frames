@@ -30,6 +30,14 @@ app.frame('/', handleHome);
 
 app.frame('/:frameId', handleHome);
 
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log('Apple and Banana')
+    return c.res({ message: 'Action Succeeded' })
+  }
+) 
+
 async function handleHome(c: any) {
   let { frameId } = c.req.param();
   try {
@@ -51,9 +59,17 @@ function renderHome(c: FrameContext, frameId: string) {
   return c.res({
     image:
       'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
-    intents: [<Button action={startAction}>Start</Button>],
+    intents: [<Button action={startAction}>Start</Button>,<Button.AddCastAction
+    action="/log-this"
+    name="Log This!"
+    icon="log"
+  >
+    Add
+  </Button.AddCastAction>],
   });
 }
+
+
 
 function renderProofAlreadyOwned(c: FrameContext, frameId: string, proofPageUrl: string) {
   const action = frameId ? `/${frameId}` : '/';
