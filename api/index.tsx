@@ -72,6 +72,7 @@ function renderProofAlreadyOwned(c: FrameContext, frameId: string, proofPageUrl:
 
 app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
   const { frameId } = c.req.param();
+  const ignoreOwnershipCheck = new Boolean(process.env.CHALLENGE_IGNORE_OWNERSHIP_CHECK);
   try {
     console.log(frameId);
     const wallet = '';
@@ -79,7 +80,7 @@ app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
     // check ownership first
     const pocFrame = await getPocFrame(frameId);
     const alreadyOwnsProof = await checkOwnership(pocFrame, wallet);
-    if (alreadyOwnsProof) {
+    if (alreadyOwnsProof && !ignoreOwnershipCheck) {
       return renderProofAlreadyOwned(c, pocFrame.id, pocFrame.phosphor_proof_url);
     } else {
       // challengeId unset => generate new one and render step/question 1

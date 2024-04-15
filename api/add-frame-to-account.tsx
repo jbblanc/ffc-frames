@@ -32,9 +32,14 @@ app.frame('/', async (c) => {
 
 app.frame('/clone', async (c) => {
   try {
+    const allowMultipleForSameFid = new Boolean(process.env.FRAME_ALLOW_MULTIPLE_FOR_SAME_FID);
     const defaultPocFrame = await getPocFrame(
       process.env.DEFAULT_POC_FRAME_ID ?? '',
     );
+    //TODO fetch other frames for this fid
+    if(!allowMultipleForSameFid){
+      //TODO if other frame exists, then return rendered blocker message => you can't create 2 frames
+    }
     const pocFrameClone = await cloneCustomPocFrameFromDefault(
       defaultPocFrame,
       '12345',
