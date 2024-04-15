@@ -6,22 +6,22 @@ import { addNewPocFrameItem } from './phosphor.js';
 export async function cloneCustomPocFrameFromDefault(
   defaultPocFrame: ProofOfCrabFrame,
   accountFid: string,
-  accountHandle: string,
 ): Promise<ProofOfCrabFrame> {
+  const accountUser = await getUserByFid(accountFid);
   const phosphorApiKey = await getPocFramePhosphorApiKey(defaultPocFrame.id);
   // setup new NFT
   const newNftDetails = await addNewPocFrameItem(
     defaultPocFrame,
-    accountFid,
-    accountHandle,
     phosphorApiKey,
+    accountFid,
+    accountUser,
   );
 
   const user = await getUserByFid(accountFid);
 
   // save new frame in DB
   const newCustomFrame = await createCustomPocFrame({
-    name: `${accountHandle}'s Proof of Crab frame`,
+    name: `${accountUser?.username}'s Proof of Crab frame`,
     security_level: defaultPocFrame.security_level,
     phosphor_organization_id: defaultPocFrame.phosphor_organization_id,
     phosphor_proof_collection_id: defaultPocFrame.phosphor_proof_collection_id,

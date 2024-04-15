@@ -382,7 +382,6 @@ app.frame('/add-frame-to-account/clone', async (c) => {
     const pocFrameClone = await cloneCustomPocFrameFromDefault(
       defaultPocFrame,
       fid,
-      '0xInfluencer',
     );
     const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameClone.id}`;
     return c.res({

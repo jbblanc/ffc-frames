@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { getPocFramePhosphorApiKey } from './db.js';
+import { FarcasterUser } from '../domain/farcaster-user.js';
 
 export async function addNewPocFrameItem(
   defaultPocFrame: ProofOfCrabFrame,
-  accountFid: string,
-  accountHandle: string,
   phosphorApiKey: string,
+  accountFid: string,
+  accountUser?: FarcasterUser,
 ) {
   // add item
   const addItemResponse = await fetch(`${process.env.PHOSPHOR_URL}/v1/items`, {
@@ -15,12 +16,12 @@ export async function addNewPocFrameItem(
     body: JSON.stringify({
       collection_id: defaultPocFrame.phosphor_proof_collection_id,
       attributes: {
-        title: `${accountHandle}'s Proof of Crab`,
-        description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountHandle}'s crabs community`,
+        title: `${accountUser?.display_name}'s Proof of Crab`,
+        description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountUser?.display_name}'s crabs community`,
         //TODO change image for proper NFT image !!
         image_url: `https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T17%3A51%3A47.863Z`,
         fid: accountFid,
-        account: accountHandle,
+        username: accountUser?.username,
       },
     }),
   });
@@ -37,6 +38,7 @@ export async function addNewPocFrameItem(
       headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
       body: JSON.stringify({
         item_id: createItemData.id,
+        quantity: '1000', // hard cap supply as a security for the demo version
       }),
     },
   );
