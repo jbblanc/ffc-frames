@@ -347,7 +347,7 @@ app.frame('/add-proof-to-account/clone', async (c) => {
 
 app.frame('/add-frame-to-account', async (c) => {
   try {
-    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api`;
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
     //const hrefCustom = `${process.env.APP_BASE_URL}/new`;
     const actionCustom = `/add-frame-to-account/clone`;
     return c.res({
