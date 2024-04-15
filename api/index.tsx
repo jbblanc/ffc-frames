@@ -11,8 +11,9 @@ import {
 } from '../utils/db.js';
 import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
-import { checkOwnership, mintProof } from '../utils/phosphor.js';
+import { checkOwnership, getProofTransaction, mintProof } from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
+import { stayIdle } from '../utils/idle.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -114,7 +115,7 @@ app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
 });
 
 app.frame('/proof-of-crab/challenge/:challengeId', async (c) => {
-  const { buttonValue, inputText, status } = c;
+  const { buttonValue } = c;
   const { challengeId } = c.req.param();
   try {
     const previousAnswer = buttonValue;
@@ -203,12 +204,12 @@ function renderChallengePassed(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
 ) {
-  const actionMintProof = `/proof-of-crab/challenge/${challenge.id}/proof`;
+  const actionMintProof = `/proof-of-crab/challenge/${challenge.id}/mint-proof`;
   return c.res({
     image:
       'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T17%3A51%3A47.863Z',
     intents: [
-      <TextInput placeholder="Enter external wallet..." />,
+      //<TextInput placeholder="Enter external wallet..." />,
       <Button action={actionMintProof} value="mint">
         Mint your 🦀 Proof
       </Button>,
@@ -232,34 +233,70 @@ function renderChallengeFailed(
   });
 }
 
+function renderProofMintInProgress(
+  c: FrameContext,
+  challenge: ProofOfCrabChallenge,
+) {
+  const actionRefreshMintStatus = `/proof-of-crab/challenge/${challenge.id}/proof-mint-in-progress`;
+  return c.res({
+    image: renderTextImage(`Proof mint in progress....`),
+    intents: [<Button action={actionRefreshMintStatus}>Refresh status</Button>],
+  });
+}
+
 function renderProofMinted(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
   proofPageUrl: string,
 ) {
   return c.res({
-    image: renderTextImage(`Proof minted - tx hash: ${challenge.mint_tx_hash}`),
+    image: renderTextImage(`Proof minted - tx id: ${challenge.mint_tx_id}`),
     intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
   });
 }
 
-app.frame('/proof-of-crab/challenge/:challengeId/proof', async (c) => {
+app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
   try {
-    const { inputText } = c;
+    const defaultWallet = process.env.DEFAULT_TEST_WALLET ?? '';
     const { challengeId } = c.req.param();
-    const fid = '1345';
-    const fidWalletAddress = '1345';
     if (!challengeId) {
       throw new Error('Challenge not found');
     }
     let challenge = await getPocChallenge(challengeId);
     const pocFrame = await getPocFrame(challenge.frame_id);
-    //TODO get FID + wallet address
-    const txHash = await mintProof(pocFrame, inputText ?? fidWalletAddress);
-    challenge.mint_tx_hash = txHash;
-    challenge.has_minted_proof = txHash !== null;
+    const phosphorTxId = await mintProof(pocFrame, challenge.user ? challenge.user.custody_address : defaultWallet);
+    challenge.mint_tx_id = phosphorTxId;
+    challenge.has_minted_proof = phosphorTxId !== null;
     await updatePocChallengeWithProof(challenge);
-    return renderProofMinted(c, challenge, pocFrame.phosphor_proof_url);
+    return renderProofMintInProgress(c, challenge);
+  } catch (e: any) {
+    console.log(e);
+    return renderError(c);
+  }
+});
+
+app.frame('/proof-of-crab/challenge/:challengeId/proof-mint-in-progress', async (c) => {
+  try {
+    const { challengeId } = c.req.param();
+    if (!challengeId) {
+      throw new Error('Challenge not found');
+    }
+    let challenge = await getPocChallenge(challengeId);
+    const pocFrame = await getPocFrame(challenge.frame_id);
+    const mintTx = await getProofTransaction(pocFrame, challenge.mint_tx_id);
+    if(!mintTx){
+      throw new Error(`Mint tx ${challenge.mint_tx_id} not found`);
+    }
+    console.log(`tx: ${challenge.mint_tx_id}, status: ${mintTx.state}, hash: ${mintTx.tx_hash}, error: ${mintTx.error_message}`);
+    if(mintTx.state === 'COMPLETED'){
+      return renderProofMinted(c, challenge, pocFrame.phosphor_proof_url);
+    } else if(mintTx.state === 'CANCELLED'){
+      throw new Error(`Proof mint tx ${challenge.mint_tx_id} was cancelled`);
+    } else {
+      // stay idle for a few secs (to avoid frame to refresh too soon)
+      stayIdle(3000);
+      return renderProofMintInProgress(c, challenge);
+    }
   } catch (e: any) {
     console.log(e);
     return renderError(c);
@@ -308,42 +345,6 @@ function renderError(c: FrameContext, frameId?: string) {
     intents: [<Button action={action}>Back to Home</Button>],
   });
 }
-/*
-app.frame('/add-proof-to-account', async (c) => {
-  const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api`;
-  //const hrefCustom = `${process.env.APP_BASE_URL}/new`;
-  const actionCustom = `/add-proof-to-account/clone`;
-  return c.res({
-    image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
-    intents: [
-      <Button.Link href={hrefDefault}>Use 🦀 with my account</Button.Link>,
-      //<Button.Link href={hrefCustom}>Setup a custom 🦀</Button.Link>,
-      <Button action={actionCustom}>Setup a custom 🦀</Button>,
-    ],
-  });
-});
-
-app.frame('/add-proof-to-account/clone', async (c) => {
-  const defaultPocFrame = await getPocFrame(
-    process.env.DEFAULT_POC_FRAME_ID ?? '',
-  );
-  const pocFrameClone = await cloneCustomPocFrameFromDefault(
-    defaultPocFrame,
-    '12345',
-    '0xInfluencer',
-  );
-  const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameClone.id}`;
-  return c.res({
-    //TODO change image with... your proof has been prepared, now activate it by clicking button
-    image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
-    intents: [
-      <Button.Link href={hrefDefault}>Activate 🦀 on my account</Button.Link>,
-    ],
-  });
-});
-*/
 
 app.frame('/add-frame-to-account', async (c) => {
   try {

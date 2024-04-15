@@ -103,7 +103,7 @@ export async function updatePocChallengeWithProof(
     .update([
       {
         has_minted_proof: challenge.has_minted_proof,
-        mint_tx_hash: challenge.mint_tx_hash,
+        mint_tx_id: challenge.mint_tx_id,
       },
     ])
     .eq('id', challenge.id)

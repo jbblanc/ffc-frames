@@ -61,7 +61,7 @@ export async function mintProof(pocFrame: ProofOfCrabFrame, toAddress: string) {
       headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
       body: JSON.stringify({
         item_id: pocFrame.phosphor_proof_item_id,
-        to_address: toAddress,
+        to_address: '0x2754265A82705CEe4Fca6343a5cdD36850348780',
         quantity: '1',
       }),
     },

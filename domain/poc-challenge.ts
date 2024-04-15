@@ -9,6 +9,6 @@ export interface ProofOfCrabChallenge {
   steps: { questions: ProofOfCrabChallengeQuestion[]; total_steps: number };
   score?: string; // PASSED, FAILED, NOT_COMPLETED
   has_minted_proof?: boolean;
-  mint_tx_hash?: string;
+  mint_tx_id?: string;
   created_at?: Date;
 }
