@@ -325,11 +325,11 @@ app.frame('/add-proof-to-account/clone', async (c) => {
   });
 });
 
-app.frame('/', async (c) => {
+app.frame('/add-frame-to-account', async (c) => {
   try {
     const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api`;
     //const hrefCustom = `${process.env.APP_BASE_URL}/new`;
-    const actionCustom = `/clone`;
+    const actionCustom = `/add-frame-to-account/clone`;
     return c.res({
       image:
         'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
@@ -345,7 +345,7 @@ app.frame('/', async (c) => {
   }
 });
 
-app.frame('/clone', async (c) => {
+app.frame('/add-frame-to-account/clone', async (c) => {
   try {
     const allowMultipleForSameFid = new Boolean(process.env.FRAME_ALLOW_MULTIPLE_FOR_SAME_FID);
     const defaultPocFrame = await getPocFrame(
@@ -376,7 +376,7 @@ app.frame('/clone', async (c) => {
 });
 
 function renderError2(c: FrameContext, frameId?: string) {
-  const action = '/';
+  const action = '/add-frame-to-account';
   return c.res({
     image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabError.png?t=2024-04-15T13%3A25%3A37.729Z',
     intents: [<Button action={action}>Back</Button>],
