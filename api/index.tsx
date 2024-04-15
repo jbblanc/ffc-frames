@@ -21,6 +21,7 @@ import { mintProof } from '../utils/phosphor.js';
 export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
+  imageAspectRatio: '1:1',
   // Supply a Hub to enable frame verification.
   // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
 });
@@ -36,7 +37,7 @@ async function handleHome(c: any) {
       frameId = process.env.DEFAULT_POC_FRAME_ID ?? '';
     }
     const pocFrame = await getPocFrame(frameId);
-    // if custom frame, handle any customisation here
+    // if custom frame (for later), handle any customisation here
     //....
     return renderHome(c, pocFrame.id);
   } catch (e: any) {
@@ -48,7 +49,7 @@ async function handleHome(c: any) {
 function renderHome(c: FrameContext, frameId: string) {
   const startAction = `/${frameId}/new-challenge`;
   return c.res({
-    image: renderTextImage('Home - Start a new Proof challenge'),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
     intents: [<Button action={startAction}>Start</Button>],
   });
 }
@@ -158,7 +159,7 @@ function renderChallengePassed(
 ) {
   const actionMintProof = `/challenge/${challenge.id}/proof`;
   return c.res({
-    image: renderTextImage('!!!! SUCCESS !!!'),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T07%3A36%3A56.661Z',
     intents: [
       <TextInput placeholder="Enter external wallet..." />,
       <Button action={actionMintProof} value="mint">
@@ -174,7 +175,7 @@ function renderChallengeFailed(
 ) {
   const actionRetryChallenge = `/${challenge.frame_id}/new-challenge`;
   return c.res({
-    image: renderTextImage('>>>> You failed <<<<'),
+    image: "https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabFail.png?t=2024-04-15T07%3A36%3A34.523Z",
     intents: [
       <Button action={actionRetryChallenge} value="retry">
         Try again
