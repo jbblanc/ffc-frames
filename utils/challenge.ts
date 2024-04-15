@@ -11,6 +11,7 @@ export async function buildNewChallenge(
   // load POC frame
   const pocFrame = await getPocFrame(frameId);
   const user = await getUserByFid(fid);
+  console.log(user);
   const questions = await generateChallengeQuestions(pocFrame);
   let newChallenge: ProofOfCrabChallenge = {
     frame_id: frameId,

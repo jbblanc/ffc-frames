@@ -14,6 +14,7 @@ export async function getUserByFid(
     },
   );
   const users = await usersResponse.json();
+  console.log(users);
   return users?.length > 0 ? (users[0] as FarcasterUser) : undefined;
 }
 
