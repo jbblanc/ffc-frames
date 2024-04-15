@@ -2,7 +2,9 @@ export interface ProofOfCrabFrame {
   id: string;
   name: string;
   security_level: number;
-  //phosphor_api_key: string;
+  phosphor_organization_id: string;
+  phosphor_proof_collection_id: string;
   phosphor_proof_item_id: string;
+  phosphor_proof_url: string;
   created_at: Date;
 }

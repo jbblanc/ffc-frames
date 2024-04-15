@@ -11,7 +11,7 @@ import {
 } from '../utils/db.js';
 import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
-import { mintProof } from '../utils/phosphor.js';
+import { checkOwnership, mintProof } from '../utils/phosphor.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -49,8 +49,17 @@ async function handleHome(c: any) {
 function renderHome(c: FrameContext, frameId: string) {
   const startAction = `/${frameId}/new-challenge`;
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
     intents: [<Button action={startAction}>Start</Button>],
+  });
+}
+
+function renderProofAlreadyOwned(c: FrameContext, frameId: string, proofPageUrl: string) {
+  const action = frameId ? `/${frameId}` : '/';
+  return c.res({
+    image: renderTextImage('You already own this 🦀 proof !'),
+    intents: [<Button action={action}>Back to Home</Button>, <Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
   });
 }
 
@@ -58,9 +67,18 @@ app.frame('/:frameId/new-challenge', async (c) => {
   const { frameId } = c.req.param();
   try {
     console.log(frameId);
-    // challengeId unset => generate new one and render step/question 1
-    const newChallenge = await buildNewChallenge(frameId);
-    return renderChallengeNextStep(c, newChallenge, 1);
+    const wallet = '';
+
+    // check ownership first
+    const pocFrame = await getPocFrame(frameId);
+    const alreadyOwnsProof = await checkOwnership(pocFrame, wallet);
+    if (alreadyOwnsProof) {
+      return renderProofAlreadyOwned(c, pocFrame.id, pocFrame.phosphor_proof_url);
+    } else {
+      // challengeId unset => generate new one and render step/question 1
+      const newChallenge = await buildNewChallenge(frameId);
+      return renderChallengeNextStep(c, newChallenge, 1);
+    }
   } catch (e: any) {
     console.log(e);
     return renderError(c, frameId);
@@ -159,11 +177,12 @@ function renderChallengePassed(
 ) {
   const actionMintProof = `/challenge/${challenge.id}/proof`;
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T07%3A36%3A56.661Z',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T07%3A36%3A56.661Z',
     intents: [
       <TextInput placeholder="Enter external wallet..." />,
       <Button action={actionMintProof} value="mint">
-        Mint you Proof
+        Mint your 🦀 Proof
       </Button>,
     ],
   });
@@ -175,7 +194,8 @@ function renderChallengeFailed(
 ) {
   const actionRetryChallenge = `/${challenge.frame_id}/new-challenge`;
   return c.res({
-    image: "https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabFail.png?t=2024-04-15T07%3A36%3A34.523Z",
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabFail.png?t=2024-04-15T07%3A36%3A34.523Z',
     intents: [
       <Button action={actionRetryChallenge} value="retry">
         Try again
@@ -184,13 +204,10 @@ function renderChallengeFailed(
   });
 }
 
-function renderProofMinted(c: FrameContext, challenge: ProofOfCrabChallenge) {
+function renderProofMinted(c: FrameContext, challenge: ProofOfCrabChallenge, proofPageUrl: string) {
   return c.res({
     image: renderTextImage(`Proof minted - tx hash: ${challenge.mint_tx_hash}`),
-    intents: [
-      //<Button action={actionRetryChallenge} value="retry">Try again</Button>,
-      //status === 'response' && <Button.Reset>Reset</Button.Reset>,
-    ],
+    intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
   });
 }
 
@@ -210,7 +227,7 @@ app.frame('/challenge/:challengeId/proof', async (c) => {
     challenge.mint_tx_hash = txHash;
     challenge.has_minted_proof = txHash !== null;
     await updatePocChallengeWithProof(challenge);
-    return renderProofMinted(c, challenge);
+    return renderProofMinted(c, challenge, pocFrame.phosphor_proof_url);
   } catch (e: any) {
     console.log(e);
     return renderError(c);
@@ -236,7 +253,7 @@ function renderTextImage(text: string) {
       <div
         style={{
           color: 'white',
-          fontSize: 60,
+          fontSize: 40,
           fontStyle: 'normal',
           letterSpacing: '-0.025em',
           lineHeight: 1.4,
