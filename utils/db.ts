@@ -15,7 +15,7 @@ export async function getPocFrame(frameId: string): Promise<ProofOfCrabFrame> {
   let { data: poc_frame, error } = await supabase
     .from('poc_frame')
     .select(
-      'id,name,security_level,created_at,phosphor_proof_item_id, phosphor_proof_url, phosphor_organization_id, phosphor_proof_collection_id, account_fid, account_handle',
+      'id,name,security_level,created_at,phosphor_proof_item_id, phosphor_proof_url, phosphor_organization_id, phosphor_proof_collection_id, account_fid, account_user',
     ) // ignore phosphor apikey here
     .eq('id', frameId);
   console.log(poc_frame);

@@ -1,5 +1,6 @@
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { createCustomPocFrame, getPocFramePhosphorApiKey } from './db.js';
+import { getUserByFid } from './neynar.js';
 import { addNewPocFrameItem } from './phosphor.js';
 
 export async function cloneCustomPocFrameFromDefault(
@@ -16,6 +17,8 @@ export async function cloneCustomPocFrameFromDefault(
     phosphorApiKey,
   );
 
+  const user = await getUserByFid(accountFid);
+
   // save new frame in DB
   const newCustomFrame = await createCustomPocFrame({
     name: `${accountHandle}'s Proof of Crab frame`,
@@ -26,7 +29,7 @@ export async function cloneCustomPocFrameFromDefault(
     phosphor_proof_url: `https://app.phosphor.xyz/${defaultPocFrame.phosphor_organization_id}/collections/${defaultPocFrame.phosphor_proof_collection_id}/${newNftDetails.item.id}`,
     phosphor_api_key: phosphorApiKey,
     account_fid: accountFid,
-    account_handle: accountHandle,
+    account_user: user,
   });
   return newCustomFrame;
 }

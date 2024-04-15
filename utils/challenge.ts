@@ -2,17 +2,20 @@ import { ProofOfCrabChallengeQuestion } from '../domain/poc-challenge-question.j
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { createPocChallenge, getPocFrame, getPocQuestions } from './db.js';
+import { getUserByFid } from './neynar.js';
 
 export async function buildNewChallenge(
   frameId: string,
-  fid?: string,
+  fid: string,
 ): Promise<ProofOfCrabChallenge> {
   // load POC frame
   const pocFrame = await getPocFrame(frameId);
+  const user = await getUserByFid(fid);
   const questions = await generateChallengeQuestions(pocFrame);
   let newChallenge: ProofOfCrabChallenge = {
     frame_id: frameId,
     fid,
+    user,
     steps: {
       questions,
       total_steps: questions.length,

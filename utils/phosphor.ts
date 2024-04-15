@@ -18,7 +18,7 @@ export async function addNewPocFrameItem(
         title: `${accountHandle}'s Proof of Crab`,
         description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountHandle}'s crabs community`,
         //TODO change image for proper NFT image !!
-        image_url: `https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T07%3A36%3A56.661Z`,
+        image_url: `https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T17%3A51%3A47.863Z`,
         fid: accountFid,
         account: accountHandle,
       },

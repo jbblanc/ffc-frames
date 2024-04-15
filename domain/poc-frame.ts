@@ -1,3 +1,5 @@
+import { FarcasterUser } from './farcaster-user.js';
+
 export interface ProofOfCrabFrame {
   id: string;
   name: string;
@@ -7,6 +9,6 @@ export interface ProofOfCrabFrame {
   phosphor_proof_item_id: string;
   phosphor_proof_url: string;
   account_fid: string;
-  account_handle: string;
+  account_user: FarcasterUser;
   created_at: Date;
 }
