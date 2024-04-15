@@ -6,5 +6,7 @@ export interface ProofOfCrabFrame {
   phosphor_proof_collection_id: string;
   phosphor_proof_item_id: string;
   phosphor_proof_url: string;
+  account_fid: string;
+  account_handle: string;
   created_at: Date;
 }

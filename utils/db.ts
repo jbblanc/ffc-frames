@@ -15,7 +15,7 @@ export async function getPocFrame(frameId: string): Promise<ProofOfCrabFrame> {
   let { data: poc_frame, error } = await supabase
     .from('poc_frame')
     .select(
-      'id,name,security_level,created_at,phosphor_proof_item_id, phosphor_proof_url, phosphor_organization_id, phosphor_proof_collection_id',
+      'id,name,security_level,created_at,phosphor_proof_item_id, phosphor_proof_url, phosphor_organization_id, phosphor_proof_collection_id, account_fid, account_handle',
     ) // ignore phosphor apikey here
     .eq('id', frameId);
   console.log(poc_frame);
@@ -40,6 +40,19 @@ export async function getPocFramePhosphorApiKey(
   } else {
     throw new Error(`Frame not found or Invalid frame id: ${frameId}`);
   }
+}
+
+export async function createCustomPocFrame(
+  newPocFrame: any,
+): Promise<ProofOfCrabFrame> {
+  const { data, error } = await supabase
+    .from('poc_frame')
+    .insert([newPocFrame])
+    .select();
+  console.log(data);
+  console.log(error);
+  if (!data) throw new Error('Error while creating new custom frame in DB');
+  return data[0] as ProofOfCrabFrame;
 }
 
 export async function getPocFrames(): Promise<void> {

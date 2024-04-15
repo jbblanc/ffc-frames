@@ -2,6 +2,53 @@ import 'dotenv/config';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { getPocFramePhosphorApiKey } from './db.js';
 
+export async function addNewPocFrameItem(
+  defaultPocFrame: ProofOfCrabFrame,
+  accountFid: string,
+  accountHandle: string,
+  phosphorApiKey: string,
+) {
+  // add item
+  const addItemResponse = await fetch(`${process.env.PHOSPHOR_URL}/v1/items`, {
+    method: 'POST',
+    headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
+    body: JSON.stringify({
+      collection_id: defaultPocFrame.phosphor_proof_collection_id,
+      attributes: {
+        title: `${accountHandle}'s Proof of Crab`,
+        description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountHandle}'s crabs community`,
+        //TODO change image for proper NFT image !!
+        image_url: `https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T07%3A36%3A56.661Z`,
+        fid: accountFid,
+        account: accountHandle,
+      },
+    }),
+  });
+  checkForErrors(addItemResponse);
+  const createItemData = await addItemResponse.json();
+  if (createItemData.error) {
+    throw new Error(`Error while adding item: ${createItemData.error.detail}`);
+  }
+  // then lock item
+  const lockItemResponse = await fetch(
+    `${process.env.PHOSPHOR_URL}/v1/items/lock`,
+    {
+      method: 'POST',
+      headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
+      body: JSON.stringify({
+        item_id: createItemData.id,
+      }),
+    },
+  );
+  checkForErrors(lockItemResponse);
+  const lockItemData = await lockItemResponse.json();
+  if (lockItemData.error) {
+    throw new Error(`Error while locking item: ${lockItemData.error.detail}`);
+  }
+  //console.log(JSON.stringify(data));
+  return { item: createItemData, lock: lockItemData };
+}
+
 export async function mintProof(pocFrame: ProofOfCrabFrame, toAddress: string) {
   const phosphorApiKey = await getPocFramePhosphorApiKey(pocFrame.id);
   // mint-request
