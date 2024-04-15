@@ -38,7 +38,7 @@ export async function addNewPocFrameItem(
       headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
       body: JSON.stringify({
         item_id: createItemData.id,
-        quantity: '1000', // hard cap supply as a security for the demo version
+        max_supply: '1000', // hard cap supply as a security for the demo version
       }),
     },
   );
