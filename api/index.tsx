@@ -1,7 +1,7 @@
 import { Button, FrameContext, Frog, TextInput } from 'frog';
 import { devtools } from 'frog/dev';
 import { serveStatic } from 'frog/serve-static';
-// import { neynar } from 'frog/hubs'
+import { neynar } from 'frog/hubs'
 import { handle } from 'frog/vercel';
 import {
   getPocChallenge,
@@ -20,12 +20,14 @@ import { app as addFrameToAccount } from './add-frame-to-account.js';
 //   runtime: 'edge',
 // }
 
+const verify = process.env.VERIFY_BODY === "true";
+
 export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
   imageAspectRatio: '1:1',
-  // Supply a Hub to enable frame verification.
-  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
+  verify: verify,
+  hub: neynar({ apiKey: process.env.NEYNAR_APIKEY ?? '' })
 });
 
 app.route('/add-frame-to-account', addFrameToAccount)
@@ -35,6 +37,11 @@ app.frame('/proof-of-crab', handleHome);
 app.frame('/proof-of-crab/:frameId', handleHome);
 
 async function handleHome(c: any) {
+  const { frameData, verified, fid } = c;
+  //const { buttonIndex, fid, castId } = frameData;
+  console.log('verified =>', verified);
+  //console.log('frameData =>', frameData);
+  console.log('fid =>', fid);
   let { frameId } = c.req.param();
   try {
     if (!frameId) {
@@ -71,6 +78,11 @@ function renderProofAlreadyOwned(c: FrameContext, frameId: string, proofPageUrl:
 }
 
 app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
+  const { frameData, verified } = c;
+  const { buttonIndex, fid, castId } = frameData;
+  console.log('verified =>', verified);
+  console.log('frameData =>', frameData);
+  console.log('fid =>', fid);
   const { frameId } = c.req.param();
   const ignoreOwnershipCheck = new Boolean(process.env.CHALLENGE_IGNORE_OWNERSHIP_CHECK);
   try {
