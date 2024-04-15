@@ -14,8 +14,9 @@ export async function getUserByFid(
     },
   );
   const users = await usersResponse.json();
-  console.log(users);
-  return users?.length > 0 ? (users[0] as FarcasterUser) : undefined;
+  return users?.users?.length > 0
+    ? (users.users[0] as FarcasterUser)
+    : undefined;
 }
 
 function buildHeader(apiKey: string) {
