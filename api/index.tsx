@@ -13,7 +13,7 @@ import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
 import { checkOwnership, mintProof } from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
-import { app as addFrameToAccount } from './add-frame-to-account.js';
+import { app as addFrameToAccount } from './add-frame-to-account';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
