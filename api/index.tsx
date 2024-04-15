@@ -13,7 +13,7 @@ import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
 import { checkOwnership, mintProof } from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
-import { app as addFrameToAccount } from './add-frame-to-account';
+//import { app as addFrameToAccount } from './add-frame-to-account';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -30,7 +30,7 @@ export const app = new Frog({
   hub: neynar({ apiKey: process.env.NEYNAR_APIKEY ?? '' })
 });
 
-app.route('/add-frame-to-account', addFrameToAccount)
+//app.route('/add-frame-to-account', addFrameToAccount)
 
 app.frame('/proof-of-crab', handleHome);
 
@@ -324,6 +324,64 @@ app.frame('/add-proof-to-account/clone', async (c) => {
     ],
   });
 });
+
+app.frame('/', async (c) => {
+  try {
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api`;
+    //const hrefCustom = `${process.env.APP_BASE_URL}/new`;
+    const actionCustom = `/clone`;
+    return c.res({
+      image:
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+      intents: [
+        <Button.Link href={hrefDefault}>Use 🦀 with my account</Button.Link>,
+        //<Button.Link href={hrefCustom}>Setup a custom 🦀</Button.Link>,
+        <Button action={actionCustom}>Setup a custom 🦀</Button>,
+      ],
+    });
+  } catch (e: any) {
+    console.log(e);
+    return renderError2(c);
+  }
+});
+
+app.frame('/clone', async (c) => {
+  try {
+    const allowMultipleForSameFid = new Boolean(process.env.FRAME_ALLOW_MULTIPLE_FOR_SAME_FID);
+    const defaultPocFrame = await getPocFrame(
+      process.env.DEFAULT_POC_FRAME_ID ?? '',
+    );
+    //TODO fetch other frames for this fid
+    if(!allowMultipleForSameFid){
+      //TODO if other frame exists, then return rendered blocker message => you can't create 2 frames
+    }
+    const pocFrameClone = await cloneCustomPocFrameFromDefault(
+      defaultPocFrame,
+      '12345',
+      '0xInfluencer',
+    );
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameClone.id}`;
+    return c.res({
+      //TODO change image with... your proof has been prepared, now activate it by clicking button
+      image:
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+      intents: [
+        <Button.Link href={hrefDefault}>Activate 🦀 on my account</Button.Link>,
+      ],
+    });
+  } catch (e: any) {
+    console.log(e);
+    return renderError2(c);
+  }
+});
+
+function renderError2(c: FrameContext, frameId?: string) {
+  const action = '/';
+  return c.res({
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabError.png?t=2024-04-15T13%3A25%3A37.729Z',
+    intents: [<Button action={action}>Back</Button>],
+  });
+}
 
 // @ts-ignore
 const isEdgeFunction = typeof EdgeFunction !== 'undefined';
