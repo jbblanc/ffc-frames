@@ -16,7 +16,7 @@ import {
   getProofTransaction,
   mintProof,
 } from '../utils/phosphor.js';
-import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
+import { generateCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
 import { FarcasterUser } from '../domain/farcaster-user.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
@@ -122,12 +122,37 @@ async function handlePocFrameHome(c: any) {
 
 function renderPocFrameHome(c: FrameContext, pocFrame: ProofOfCrabFrame) {
   const startAction = `/proof-of-crab/${pocFrame.id}/new-challenge`;
+  const instructionsAction = `/proof-of-crab/${pocFrame.id}/instructions`;
   const crabsUrl = `${process.env.APP_BASE_URL}/${pocFrame.id}`;
   return c.res({
     image: renderPocFrameHomeImage(pocFrame.account_user),
     intents: [
       <Button action={startAction}>▶️ Start</Button>,
+      <Button action={instructionsAction}>Instructions</Button>,
       <Button.Link href={crabsUrl}>View Crabs</Button.Link>,
+    ],
+  });
+}
+
+app.frame('/proof-of-crab/:frameId/instructions', async (c) => {
+  let { frameId } = c.req.param();
+  try {
+    const pocFrame = await getPocFrame(frameId);
+    return renderPocFrameInstructions(c, pocFrame);
+  } catch (e: any) {
+    console.log(e);
+    return renderError(c, frameId);
+  }
+});
+
+function renderPocFrameInstructions(c: FrameContext, pocFrame: ProofOfCrabFrame) {
+  const backAction = `/proof-of-crab/${pocFrame.id}`;
+  const startAction = `/proof-of-crab/${pocFrame.id}/new-challenge`;
+  return c.res({
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HowtoPlay.png',
+    intents: [
+      <Button action={backAction}>Back</Button>,
+      <Button action={startAction}>▶️ Start</Button>,
     ],
   });
 }
@@ -139,7 +164,7 @@ function renderProofAlreadyOwned(
 ) {
   const action = frameId ? `/${frameId}` : '/';
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabApproved.png?t=2024-04-16T13%3A31%3A02.397Z',
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabApproved.png',
     intents: [
       <Button action={action}>Back to Home</Button>,
       <Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>,
@@ -274,7 +299,7 @@ function renderChallengePassed(
   const actionMintProof = `/proof-of-crab/challenge/${challenge.id}/mint-proof`;
   return c.res({
     image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T17%3A51%3A47.863Z',
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png',
     intents: [
       //<TextInput placeholder="Enter external wallet..." />,
       <Button action={actionMintProof} value="mint">
@@ -291,7 +316,7 @@ function renderChallengeFailed(
   const actionRetryChallenge = `/proof-of-crab/${challenge.frame_id}/new-challenge`;
   return c.res({
     image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabFail.png?t=2024-04-15T07%3A36%3A34.523Z',
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabFail.png',
     intents: [
       <Button action={actionRetryChallenge} value="retry">
         Try again
@@ -307,7 +332,7 @@ function renderProofMintInProgress(
 ) {
   const actionRefreshMintStatus = `/proof-of-crab/challenge/${challenge.id}/proof-mint-in-progress`;
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png?t=2024-04-16T14%3A32%3A31.603Z',
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png',
     intents: [
       (mintTxHash !== undefined && mintTxHash !== null) && (
         <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
@@ -325,7 +350,7 @@ function renderProofMinted(
   const phosphorUrl = 'https://phosphor.xyz/';
   const shareChallengeUrl = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${challenge.frame_id}`
   return c.res({
-    image: renderTextImage(`Proof minted - tx id: ${challenge.mint_tx_id}`),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/MintSuccess.png',
     intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>, 
     <Button.Link href={shareChallengeUrl}>Share this challenge</Button.Link>,
     <Button.Link href={phosphorUrl}>Try Phosphor</Button.Link>],
@@ -431,23 +456,37 @@ function renderError(c: FrameContext, frameId?: string) {
   const action = frameId ? `/proof-of-crab/${frameId}` : '/proof-of-crab';
   return c.res({
     image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabError.png?t=2024-04-15T13%3A25%3A37.729Z',
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabError.png',
     intents: [<Button action={action}>Back to Home</Button>],
   });
 }
 
 app.frame('/add-frame-to-account', async (c) => {
   try {
-    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
-    //const hrefCustom = `${process.env.APP_BASE_URL}/new`;
-    const actionCustom = `/add-frame-to-account/clone`;
+    const actionInstructions = `/add-frame-to-account/instructions`;
     return c.res({
       image:
         'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
       intents: [
-        <Button.Link href={hrefDefault}>Use 🦀 with my account</Button.Link>,
-        //<Button.Link href={hrefCustom}>Setup a custom 🦀</Button.Link>,
-        <Button action={actionCustom}>Setup a custom 🦀</Button>,
+        <Button action={actionInstructions}>Start using this for your 🦀 needs</Button>,
+      ],
+    });
+  } catch (e: any) {
+    console.log(e);
+    return renderError2(c);
+  }
+});
+
+app.frame('/add-frame-to-account/instructions', async (c) => {
+  try {
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
+    const actionCustom = `/add-frame-to-account/custom`;
+    return c.res({
+      image:
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HostOptions.png',
+      intents: [
+        <Button.Link href={hrefDefault}>Use Standard 🦀 </Button.Link>,
+        <Button action={actionCustom}>Create my Custom one</Button>,
       ],
     });
   } catch (e: any) {
@@ -457,7 +496,7 @@ app.frame('/add-frame-to-account', async (c) => {
 });
 
 //TODO prevent same FID to create a new frame for now. If frame already exists, show a message + buttons to access and use it again
-app.frame('/add-frame-to-account/clone', async (c) => {
+app.frame('/add-frame-to-account/custom', async (c) => {
   try {
     const { frameData, verified } = c;
     const { fid } = frameData;
@@ -471,7 +510,7 @@ app.frame('/add-frame-to-account/clone', async (c) => {
     if (!allowMultipleForSameFid) {
       //TODO if other frame exists, then return rendered blocker message => you can't create 2 frames
     }
-    const pocFrameClone = await cloneCustomPocFrameFromDefault(
+    const pocFrameClone = await generateCustomPocFrameFromDefault(
       defaultPocFrame,
       fid,
     );

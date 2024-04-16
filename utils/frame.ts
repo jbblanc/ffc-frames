@@ -4,7 +4,7 @@ import { getUserByFid } from './neynar.js';
 import { addNewPocFrameItem } from './phosphor.js';
 import { generateCustomProofArtwork } from './proof.js';
 
-export async function cloneCustomPocFrameFromDefault(
+export async function generateCustomPocFrameFromDefault(
   defaultPocFrame: ProofOfCrabFrame,
   accountFid: string,
 ): Promise<ProofOfCrabFrame> {
