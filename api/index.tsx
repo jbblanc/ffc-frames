@@ -123,7 +123,7 @@ async function handlePocFrameHome(c: any) {
 function renderPocFrameHome(c: FrameContext, pocFrame: ProofOfCrabFrame) {
   const startAction = `/proof-of-crab/${pocFrame.id}/new-challenge`;
   const instructionsAction = `/proof-of-crab/${pocFrame.id}/instructions`;
-  const crabsUrl = `${process.env.APP_BASE_URL}/${pocFrame.id}`;
+  const crabsUrl = `${process.env.APP_BASE_URL}/frames/${pocFrame.id}`;
   return c.res({
     image: renderPocFrameHomeImage(pocFrame.account_user),
     intents: [
