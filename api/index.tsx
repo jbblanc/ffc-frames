@@ -24,13 +24,15 @@ import { stayIdle } from '../utils/idle.js';
 //   runtime: 'edge',
 // }
 
-const verify = process.env.VERIFY_BODY === 'true';
+// @ts-ignore
+const isEdgeFunction = typeof EdgeFunction !== 'undefined';
+const isProduction = isEdgeFunction || import.meta.env?.MODE !== 'development';
 
 export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
   imageAspectRatio: '1:1',
-  verify: verify,
+  verify: isProduction,
   hub: neynar({ apiKey: process.env.NEYNAR_APIKEY ?? '' }),
 });
 //app.route('/add-frame-to-account', addFrameToAccount)
@@ -38,6 +40,7 @@ export const app = new Frog({
 app.frame('/', async (c) => {
   const actionCreatePocFrame = '/add-frame-to-account';
   const actionStartPocFrame = '/proof-of-crab';
+  console.log(process.env.NODE_ENV);
   return c.res({
     image: renderTestImage(),
     intents: [
@@ -490,9 +493,7 @@ function getTxUrl(txHash: string): string{
   return `https://lineascan.build/tx/${txHash}`;
 }
 
-// @ts-ignore
-const isEdgeFunction = typeof EdgeFunction !== 'undefined';
-const isProduction = isEdgeFunction || import.meta.env?.MODE !== 'development';
+
 devtools(app, isProduction ? { assetsPath: '/.frog' } : { serveStatic });
 
 export const GET = handle(app);

@@ -1,11 +1,13 @@
 import { FarcasterUser } from '../domain/farcaster-user.js';
 
-const verify = process.env.VERIFY_BODY === 'true';
+// @ts-ignore
+const isEdgeFunction = typeof EdgeFunction !== 'undefined';
+const isProduction = isEdgeFunction || import.meta.env?.MODE !== 'development';
 
 export async function getUserByFid(
   fid: string,
 ): Promise<FarcasterUser | undefined> {
-  if (!verify && fid === '1') return undefined;
+  if (!isProduction && fid === '1') return undefined;
   const usersResponse = await fetch(
     `${process.env.NEYNAR_URL}/v2/farcaster/user/bulk?fids=${fid}`,
     {

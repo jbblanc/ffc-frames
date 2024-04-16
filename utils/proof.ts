@@ -4,6 +4,10 @@ import { html } from 'satori-html';
 import { readFile } from 'node:fs/promises';
 import { supabase } from './supabase.js';
 
+// @ts-ignore
+const isEdgeFunction = typeof EdgeFunction !== 'undefined';
+const isProduction = isEdgeFunction || import.meta.env?.MODE !== 'development';
+
 export async function generateCustomProofArtwork(
   accountFid: string,
   accountHandle?: string,
@@ -33,7 +37,9 @@ export async function generateCustomProofArtwork(
     fonts: [
       {
         name: 'Roboto',
-        data: await readFile('./public/Roboto-Medium.ttf'),
+        data: await readFile(
+          isProduction ? './Roboto-Medium.ttf' : './public/Roboto-Medium.ttf',
+        ),
         weight: 400,
         style: 'normal',
       },
