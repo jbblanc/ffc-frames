@@ -3,6 +3,7 @@ import { Resvg } from '@resvg/resvg-js';
 import { html } from 'satori-html';
 import { readFile } from 'node:fs/promises';
 import { supabase } from './supabase.js';
+import path from 'path';
 
 // @ts-ignore
 const isEdgeFunction = typeof EdgeFunction !== 'undefined';
@@ -38,7 +39,9 @@ export async function generateCustomProofArtwork(
       {
         name: 'Roboto',
         data: await readFile(
-          isProduction ? 'Roboto-Medium.ttf' : './public/Roboto-Medium.ttf',
+          isProduction
+            ? path.join(process.cwd(), 'Roboto-Medium.ttf')
+            : './public/Roboto-Medium.ttf',
         ),
         weight: 400,
         style: 'normal',
