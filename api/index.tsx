@@ -18,6 +18,8 @@ import {
 } from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
+import { FarcasterUser } from '../domain/farcaster-user.js';
+import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 //import { generateCustomProofArtwork } from '../utils/proof.js';
 
 // Uncomment to use Edge Runtime.
@@ -43,7 +45,7 @@ app.frame('/', async (c) => {
   const actionStartPocFrame = '/proof-of-crab';
   //await generateCustomProofArtwork('12345', 'jhjhjjh', 'lklkklklkkl', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
-    image: renderTestImage(),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
     intents: [
       <Button action={actionCreatePocFrame}>Create on my account</Button>,
       <Button action={actionStartPocFrame}>Go to challenge</Button>,
@@ -51,27 +53,27 @@ app.frame('/', async (c) => {
   });
 });
 
-function renderTestImage(text?: string) {
+function renderPocFrameHomeImage(accountUser: FarcasterUser) {
   return (
     <div
       style={{
-        alignItems: 'center',
         background: 'black',
         backgroundSize: '100% 100%',
-        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png)',
+        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabStartWide.png)',
         display: 'flex',
         flexDirection: 'column',
         flexWrap: 'nowrap',
-        height: '650',
-        justifyContent: 'center',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
         textAlign: 'center',
-        width: '650',
+        width: '100%',
       }}
     >
       <div
         style={{
-          color: 'red',
-          fontSize: 40,
+          color: '#fff',
+          fontSize: 32,
           fontStyle: 'normal',
           letterSpacing: '-0.025em',
           lineHeight: 1.4,
@@ -79,13 +81,19 @@ function renderTestImage(text?: string) {
           padding: '0 120px',
           whiteSpace: 'pre-wrap',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           justifyContent: 'center',
-          alignItems: 'center',
+          alignItems: 'flex-start',
         }}
       >
-        <div>The Web3 Influencer</div>
-        <div>@jbb_consensys</div>
+        <div style={{display: 'flex'}}>
+        <div style={{display: 'flex'}}><img style={{borderRadius: '9999px'}} src={accountUser?.pfp_url} width="100" height="100" /></div>
+
+        </div>
+        <div style={{display: 'flex', flexDirection: 'column', paddingLeft: '30px'}}>
+          <div style={{display: 'flex'}}>{accountUser?.display_name}</div>
+          <div style={{display: 'flex'}}>@{accountUser?.username}</div>
+        </div>
       </div>
     </div>
   );
@@ -105,19 +113,18 @@ async function handlePocFrameHome(c: any) {
     const pocFrame = await getPocFrame(frameId);
     // if custom frame (for later), handle any customisation here
     //....
-    return renderPocFrameHome(c, pocFrame.id);
+    return renderPocFrameHome(c, pocFrame);
   } catch (e: any) {
     console.log(e);
     return renderError(c, frameId);
   }
 }
 
-function renderPocFrameHome(c: FrameContext, frameId: string) {
-  const startAction = `/proof-of-crab/${frameId}/new-challenge`;
-  const crabsUrl = `${process.env.APP_BASE_URL}/${frameId}`;
+function renderPocFrameHome(c: FrameContext, pocFrame: ProofOfCrabFrame) {
+  const startAction = `/proof-of-crab/${pocFrame.id}/new-challenge`;
+  const crabsUrl = `${process.env.APP_BASE_URL}/${pocFrame.id}`;
   return c.res({
-    image:
-      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+    image: renderPocFrameHomeImage(pocFrame.account_user),
     intents: [
       <Button action={startAction}>▶️ Start</Button>,
       <Button.Link href={crabsUrl}>View Crabs</Button.Link>,
@@ -302,7 +309,7 @@ function renderProofMintInProgress(
   return c.res({
     image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png?t=2024-04-16T14%3A32%3A31.603Z',
     intents: [
-      mintTxHash !== undefined && (
+      (mintTxHash !== undefined && mintTxHash !== null) && (
         <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
       ),
       <Button action={actionRefreshMintStatus}>🔁 Refresh status</Button>,
@@ -313,14 +320,15 @@ function renderProofMintInProgress(
 function renderProofMinted(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
-  mintTxHash: string,
   proofPageUrl: string,
 ) {
+  const phosphorUrl = 'https://phosphor.xyz/';
+  const shareChallengeUrl = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${challenge.frame_id}`
   return c.res({
     image: renderTextImage(`Proof minted - tx id: ${challenge.mint_tx_id}`),
-    intents: [mintTxHash !== undefined && (
-      <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
-    ),<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
+    intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>, 
+    <Button.Link href={shareChallengeUrl}>Share this challenge</Button.Link>,
+    <Button.Link href={phosphorUrl}>Try Phosphor</Button.Link>],
   });
 }
 
@@ -448,6 +456,7 @@ app.frame('/add-frame-to-account', async (c) => {
   }
 });
 
+//TODO prevent same FID to create a new frame for now. If frame already exists, show a message + buttons to access and use it again
 app.frame('/add-frame-to-account/clone', async (c) => {
   try {
     const { frameData, verified } = c;

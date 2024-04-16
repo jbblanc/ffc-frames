@@ -27,11 +27,10 @@ export async function getPocFramePhosphorApiKey(
     .from('poc_frame')
     .select('phosphor_api_key')
     .eq('id', frameId);
-  console.log(error);
-  console.log(poc_frame);
   if (poc_frame) {
     return poc_frame[0].phosphor_api_key;
   } else {
+    console.log(error);
     throw new Error(`Frame not found or Invalid frame id: ${frameId}`);
   }
 }
