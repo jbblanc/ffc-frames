@@ -38,7 +38,7 @@ export async function generateCustomProofArtwork(
       {
         name: 'Roboto',
         data: await readFile(
-          isProduction ? '/Roboto-Medium.ttf' : './public/Roboto-Medium.ttf',
+          isProduction ? 'Roboto-Medium.ttf' : './public/Roboto-Medium.ttf',
         ),
         weight: 400,
         style: 'normal',
