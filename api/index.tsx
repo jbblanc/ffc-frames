@@ -1,4 +1,4 @@
-import { Button, FrameContext, Frog, TextInput } from 'frog';
+import { Button, FrameContext, Frog } from 'frog';
 import { devtools } from 'frog/dev';
 import { serveStatic } from 'frog/serve-static';
 import { neynar } from 'frog/hubs';
@@ -33,14 +33,66 @@ export const app = new Frog({
   verify: verify,
   hub: neynar({ apiKey: process.env.NEYNAR_APIKEY ?? '' }),
 });
-
 //app.route('/add-frame-to-account', addFrameToAccount)
 
-app.frame('/proof-of-crab', handleHome);
+app.frame('/', async (c) => {
+  const actionCreatePocFrame = '/add-frame-to-account';
+  const actionStartPocFrame = '/proof-of-crab';
+  return c.res({
+    image: renderTestImage(),
+    intents: [
+      <Button action={actionCreatePocFrame}>Create on my account</Button>,
+      <Button action={actionStartPocFrame}>Go to challenge</Button>,
+    ],
+  });
+});
 
-app.frame('/proof-of-crab/:frameId', handleHome);
+function renderTestImage(text?: string) {
+  return (
+    <div
+      style={{
+        alignItems: 'center',
+        background: 'black',
+        backgroundSize: '100% 100%',
+        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap: 'nowrap',
+        height: '650',
+        justifyContent: 'center',
+        textAlign: 'center',
+        width: '650',
+      }}
+    >
+      <div
+        style={{
+          color: 'red',
+          fontSize: 40,
+          fontStyle: 'normal',
+          letterSpacing: '-0.025em',
+          lineHeight: 1.4,
+          marginTop: 30,
+          padding: '0 120px',
+          whiteSpace: 'pre-wrap',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <div>The Web3 Influencer</div>
+        <div>@jbb_consensys</div>
+      </div>
+    </div>
+  );
+}
 
-async function handleHome(c: any) {
+
+app.frame('/proof-of-crab', handlePocFrameHome);
+
+app.frame('/proof-of-crab/:frameId', handlePocFrameHome);
+
+async function handlePocFrameHome(c: any) {
   let { frameId } = c.req.param();
   try {
     if (!frameId) {
@@ -49,14 +101,14 @@ async function handleHome(c: any) {
     const pocFrame = await getPocFrame(frameId);
     // if custom frame (for later), handle any customisation here
     //....
-    return renderHome(c, pocFrame.id);
+    return renderPocFrameHome(c, pocFrame.id);
   } catch (e: any) {
     console.log(e);
     return renderError(c, frameId);
   }
 }
 
-function renderHome(c: FrameContext, frameId: string) {
+function renderPocFrameHome(c: FrameContext, frameId: string) {
   const startAction = `/proof-of-crab/${frameId}/new-challenge`;
   const crabsUrl = `${process.env.APP_BASE_URL}/${frameId}`;
   return c.res({

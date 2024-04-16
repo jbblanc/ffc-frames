@@ -7,6 +7,7 @@ export async function addNewPocFrameItem(
   defaultPocFrame: ProofOfCrabFrame,
   phosphorApiKey: string,
   accountFid: string,
+  nftProofArtworkUrl: string,
   accountUser?: FarcasterUser,
 ) {
   // add item
@@ -18,8 +19,7 @@ export async function addNewPocFrameItem(
       attributes: {
         title: `${accountUser?.display_name}'s Proof of Crab`,
         description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountUser?.display_name}'s crabs community`,
-        //TODO change image for proper NFT image !!
-        image_url: `https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png?t=2024-04-15T17%3A51%3A47.863Z`,
+        image_url: nftProofArtworkUrl,
         fid: accountFid,
         username: accountUser?.username,
       },

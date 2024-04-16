@@ -1,15 +1,9 @@
 import 'dotenv/config';
 
-import { createClient } from '@supabase/supabase-js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { ProofOfCrabQuestion } from '../domain/poc-question.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-  process.env.SUPABASE_URL ?? '',
-  process.env.SUPABASE_KEY ?? '',
-);
+import { supabase } from './supabase.js';
 
 export async function getPocFrame(frameId: string): Promise<ProofOfCrabFrame> {
   let { data: poc_frame, error } = await supabase
