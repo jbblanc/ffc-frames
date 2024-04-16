@@ -11,7 +11,11 @@ import {
 } from '../utils/db.js';
 import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
-import { checkOwnership, getProofTransaction, mintProof } from '../utils/phosphor.js';
+import {
+  checkOwnership,
+  getProofTransaction,
+  mintProof,
+} from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
 
@@ -236,22 +240,31 @@ function renderChallengeFailed(
 function renderProofMintInProgress(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
+  mintTxHash?: string,
 ) {
   const actionRefreshMintStatus = `/proof-of-crab/challenge/${challenge.id}/proof-mint-in-progress`;
   return c.res({
     image: renderTextImage(`Proof mint in progress....`),
-    intents: [<Button action={actionRefreshMintStatus}>Refresh status</Button>],
+    intents: [
+      mintTxHash !== undefined && (
+        <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
+      ),
+      <Button action={actionRefreshMintStatus}>🔁 Refresh status</Button>,
+    ],
   });
 }
 
 function renderProofMinted(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
+  mintTxHash: string,
   proofPageUrl: string,
 ) {
   return c.res({
     image: renderTextImage(`Proof minted - tx id: ${challenge.mint_tx_id}`),
-    intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
+    intents: [mintTxHash !== undefined && (
+      <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
+    ),<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>],
   });
 }
 
@@ -264,7 +277,10 @@ app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
     }
     let challenge = await getPocChallenge(challengeId);
     const pocFrame = await getPocFrame(challenge.frame_id);
-    const phosphorTxId = await mintProof(pocFrame, challenge.user ? challenge.user.custody_address : defaultWallet);
+    const phosphorTxId = await mintProof(
+      pocFrame,
+      challenge.user ? challenge.user.custody_address : defaultWallet,
+    );
     challenge.mint_tx_id = phosphorTxId;
     challenge.has_minted_proof = phosphorTxId !== null;
     await updatePocChallengeWithProof(challenge);
@@ -275,33 +291,43 @@ app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
   }
 });
 
-app.frame('/proof-of-crab/challenge/:challengeId/proof-mint-in-progress', async (c) => {
-  try {
-    const { challengeId } = c.req.param();
-    if (!challengeId) {
-      throw new Error('Challenge not found');
+app.frame(
+  '/proof-of-crab/challenge/:challengeId/proof-mint-in-progress',
+  async (c) => {
+    try {
+      const { challengeId } = c.req.param();
+      if (!challengeId) {
+        throw new Error('Challenge not found');
+      }
+      let challenge = await getPocChallenge(challengeId);
+      const pocFrame = await getPocFrame(challenge.frame_id);
+      const mintTx = await getProofTransaction(pocFrame, challenge.mint_tx_id);
+      if (!mintTx) {
+        throw new Error(`Mint tx ${challenge.mint_tx_id} not found`);
+      }
+      console.log(
+        `tx: ${challenge.mint_tx_id}, status: ${mintTx.state}, hash: ${mintTx.tx_hash}, error: ${mintTx.error_message}`,
+      );
+      if (mintTx.state === 'COMPLETED') {
+        return renderProofMinted(
+          c,
+          challenge,
+          mintTx.tx_hash,
+          pocFrame.phosphor_proof_url,
+        );
+      } else if (mintTx.state === 'CANCELLED') {
+        throw new Error(`Proof mint tx ${challenge.mint_tx_id} was cancelled`);
+      } else {
+        // stay idle for a few secs (to avoid frame to refresh too soon)
+        stayIdle(3000);
+        return renderProofMintInProgress(c, challenge, mintTx.tx_hash);
+      }
+    } catch (e: any) {
+      console.log(e);
+      return renderError(c);
     }
-    let challenge = await getPocChallenge(challengeId);
-    const pocFrame = await getPocFrame(challenge.frame_id);
-    const mintTx = await getProofTransaction(pocFrame, challenge.mint_tx_id);
-    if(!mintTx){
-      throw new Error(`Mint tx ${challenge.mint_tx_id} not found`);
-    }
-    console.log(`tx: ${challenge.mint_tx_id}, status: ${mintTx.state}, hash: ${mintTx.tx_hash}, error: ${mintTx.error_message}`);
-    if(mintTx.state === 'COMPLETED'){
-      return renderProofMinted(c, challenge, pocFrame.phosphor_proof_url);
-    } else if(mintTx.state === 'CANCELLED'){
-      throw new Error(`Proof mint tx ${challenge.mint_tx_id} was cancelled`);
-    } else {
-      // stay idle for a few secs (to avoid frame to refresh too soon)
-      stayIdle(3000);
-      return renderProofMintInProgress(c, challenge);
-    }
-  } catch (e: any) {
-    console.log(e);
-    return renderError(c);
-  }
-});
+  },
+);
 
 function renderTextImage(text: string) {
   return (
@@ -406,6 +432,10 @@ function renderError2(c: FrameContext, frameId?: string) {
       'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabError.png?t=2024-04-15T13%3A25%3A37.729Z',
     intents: [<Button action={action}>Back</Button>],
   });
+}
+
+function getTxUrl(txHash: string): string{
+  return `https://lineascan.build/tx/${txHash}`;
 }
 
 // @ts-ignore
