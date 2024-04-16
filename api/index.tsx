@@ -132,7 +132,7 @@ function renderProofAlreadyOwned(
 ) {
   const action = frameId ? `/${frameId}` : '/';
   return c.res({
-    image: renderTextImage('You already own this 🦀 proof !'),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabApproved.png?t=2024-04-16T13%3A31%3A02.397Z',
     intents: [
       <Button action={action}>Back to Home</Button>,
       <Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>,
@@ -300,7 +300,7 @@ function renderProofMintInProgress(
 ) {
   const actionRefreshMintStatus = `/proof-of-crab/challenge/${challenge.id}/proof-mint-in-progress`;
   return c.res({
-    image: renderTextImage(`Proof mint in progress....`),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png?t=2024-04-16T14%3A32%3A31.603Z',
     intents: [
       mintTxHash !== undefined && (
         <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>

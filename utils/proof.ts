@@ -28,7 +28,7 @@ export async function generateCustomProofArtwork(
 <div style="display: flex; flex-flow: column nowrap; align-items: center; justify-content: flex-start; width: 2400px; height: 2400px; background-size: 100% 100%; background-image: url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png);">
   <div style="width: 100%; height: 100%; display: flex; justify-content: flex-start; align-items: center; margin: 6px; padding: 50px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: red; font-size: 72px;">
     <div>${accountHandle}</div>
-    <img style="border-radius: 20px;" src="${accountPfpUrl}" width="100" height="100" />
+    <img style="border-radius: 9999px;" src="${accountPfpUrl}" width="100" height="100" />
     <div>${accountDisplayName}</div>
   </div>
 </div>
