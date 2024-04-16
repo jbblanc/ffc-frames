@@ -1,7 +1,7 @@
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { html } from 'satori-html';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { supabase } from './supabase.js';
 import path from 'path';
 
@@ -32,17 +32,18 @@ export async function generateCustomProofArtwork(
   </div>
 </div>
 `);
+  console.log(await readdir(process.cwd()));
   const svg = await satori(template, {
     width: 600,
     height: 600,
     fonts: [
       {
         name: 'Roboto',
-        data: await readFile(
-          isProduction
-            ? path.join(process.cwd(), 'Roboto-Medium.ttf')
-            : './public/Roboto-Medium.ttf',
-        ),
+        data: isProduction
+          ? await fetch(`${process.env.BASE_URL}/Roboto-Medium.ttf`).then(
+              (res) => res.arrayBuffer(),
+            )
+          : await readFile('./public/Roboto-Medium.ttf'),
         weight: 400,
         style: 'normal',
       },
