@@ -516,11 +516,10 @@ app.frame('/add-frame-to-account/custom', async (c) => {
     );
     const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameClone.id}`;
     return c.res({
-      //TODO change image with... your proof has been prepared, now activate it by clicking button
       image:
-        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/ConfirmCustom.png',
       intents: [
-        <Button.Link href={hrefDefault}>Activate 🦀 on my account</Button.Link>,
+        <Button.Link href={hrefDefault}>Share this 🦀 on my account</Button.Link>,
       ],
     });
   } catch (e: any) {
