@@ -15,6 +15,7 @@ export async function cloneCustomPocFrameFromDefault(
     accountFid,
     accountUser?.username,
     accountUser?.display_name,
+    accountUser?.pfp_url,
   );
   // setup new NFT
   const newNftDetails = await addNewPocFrameItem(

@@ -1,9 +1,8 @@
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { html } from 'satori-html';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { supabase } from './supabase.js';
-import path from 'path';
 
 // @ts-ignore
 const isEdgeFunction = typeof EdgeFunction !== 'undefined';
@@ -13,6 +12,7 @@ export async function generateCustomProofArtwork(
   accountFid: string,
   accountHandle?: string,
   accountDisplayName?: string,
+  accountPfpUrl?: string,
 ): Promise<string> {
   /*const template = html(`
 <div style="display: flex; flex-flow: column nowrap; align-items: stretch; width: 600px; height: 600px; backgroundImage: linear-gradient(to right, #0f0c29, #302b63, #24243e); color: #000;">
@@ -25,17 +25,17 @@ export async function generateCustomProofArtwork(
 </div>
 `);*/
   const template = html(`
-<div style="display: flex; flex-flow: column nowrap; align-items: center; justify-content: flex-start; width: 600px; height: 600px; background-size: 100% 100%; background-image: url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png);">
-  <div style="display: flex; justify-content: flex-start; align-items: center; margin: 6px; padding: 12px; border-radius: 4px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 22px;">
+<div style="display: flex; flex-flow: column nowrap; align-items: center; justify-content: flex-start; width: 2400px; height: 2400px; background-size: 100% 100%; background-image: url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png);">
+  <div style="width: 100%; height: 100%; display: flex; justify-content: flex-start; align-items: center; margin: 6px; padding: 50px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: red; font-size: 72px;">
     <div>${accountHandle}</div>
+    <img style="border-radius: 20px;" src="${accountPfpUrl}" width="100" height="100" />
     <div>${accountDisplayName}</div>
   </div>
 </div>
 `);
-  console.log(await readdir(process.cwd()));
   const svg = await satori(template, {
-    width: 600,
-    height: 600,
+    width: 2400,
+    height: 2400,
     fonts: [
       {
         name: 'Roboto',
@@ -52,6 +52,13 @@ export async function generateCustomProofArtwork(
   //console.log(svg);
   const resvg = new Resvg(svg, {
     background: 'rgba(238, 235, 230, .9)',
+    dpi: 300,
+    fitTo: {
+      mode: 'original',
+    },
+    imageRendering: 0,
+    textRendering: 2,
+    shapeRendering: 2,
   });
   const pngData = resvg.render();
   const pngBuffer = pngData.asPng();

@@ -18,6 +18,7 @@ import {
 } from '../utils/phosphor.js';
 import { cloneCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
+//import { generateCustomProofArtwork } from '../utils/proof.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -40,7 +41,7 @@ export const app = new Frog({
 app.frame('/', async (c) => {
   const actionCreatePocFrame = '/add-frame-to-account';
   const actionStartPocFrame = '/proof-of-crab';
-  console.log(process.env.NODE_ENV);
+  //await generateCustomProofArtwork('12345', 'jhjhjjh', 'lklkklklkkl', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
     image: renderTestImage(),
     intents: [
