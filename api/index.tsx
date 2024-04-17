@@ -23,7 +23,6 @@ import { stayIdle } from '../utils/idle.js';
 import { FarcasterUser } from '../domain/farcaster-user.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { getUserByFid } from '../utils/neynar.js';
-import { generateCustomProofArtwork } from '../utils/proof.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
