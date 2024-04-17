@@ -108,11 +108,12 @@ export async function getItemForFrame(pocFrame: ProofOfCrabFrame) {
   return item;
 }
 
-export async function checkOwnership(
+export async function walletOwnsProof(
   pocFrame: ProofOfCrabFrame,
   walletAddress: string,
   minQuantityOwned = 1,
 ): Promise<boolean> {
+  if (!walletAddress) return false;
   let ownerPage: any;
   do {
     ownerPage = await getNextOwnersPageForItem(

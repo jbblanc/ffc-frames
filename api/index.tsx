@@ -12,7 +12,7 @@ import {
 import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
 import {
-  checkOwnership,
+  walletOwnsProof,
   getItemForFrame,
   getProofTransaction,
   mintProof,
@@ -21,6 +21,7 @@ import { generateCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
 import { FarcasterUser } from '../domain/farcaster-user.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
+import { getUserByFid } from '../utils/neynar.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -40,6 +41,10 @@ export const app = new Frog({
 });
 //app.route('/add-frame-to-account', addFrameToAccount)
 
+/**
+ * Global HOME frame
+ */
+
 app.frame('/', async (c) => {
   const actionCreatePocFrame = '/add-frame-to-account';
   const actionStartPocFrame = '/proof-of-crab';
@@ -52,6 +57,11 @@ app.frame('/', async (c) => {
     ],
   });
 });
+
+/**
+ * Proof of Crab CHALLENGE frames
+ * These frames handle a Proof of Crab challenge for any given Proof of Crab frame (owned by a farcaster account)
+ */
 
 function renderPocFrameHomeImage(accountUser: FarcasterUser) {
   return (
@@ -180,22 +190,17 @@ function renderProofAlreadyOwned(
 }
 
 app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
-  const { frameData, verified } = c;
+  const { frameData } = c;
   const { fid } = frameData;
-  console.log('verified =>', verified);
-  console.log('frameData =>', frameData);
-  console.log('fid =>', fid);
   const { frameId } = c.req.param();
   const ignoreOwnershipCheck = new Boolean(
     process.env.CHALLENGE_IGNORE_OWNERSHIP_CHECK,
   );
   try {
-    console.log(frameId);
-    const wallet = '';
-
-    // check ownership first
+    const challengedUser = await getUserByFid(fid);
     const pocFrame = await getPocFrame(frameId);
-    const alreadyOwnsProof = await checkOwnership(pocFrame, wallet);
+    // check ownership first (no need to create & run new challenge again)
+    const alreadyOwnsProof = await walletOwnsProof(pocFrame, challengedUser?.custody_address);
     if (alreadyOwnsProof && !ignoreOwnershipCheck) {
       return renderProofAlreadyOwned(
         c,
@@ -203,7 +208,7 @@ app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
         pocFrame.phosphor_proof_url,
       );
     } else {
-      // challengeId unset => generate new one and render step/question 1
+      // generate new challenge for this use and render step/question 1
       const newChallenge = await buildNewChallenge(frameId, fid);
       return renderChallengeNextStep(c, newChallenge, 1);
     }
@@ -515,6 +520,11 @@ function renderError(c: FrameContext, frameId?: string) {
   });
 }
 
+/**
+ * Proof of Crab CUSTOM FRAME CHALLENGE frames
+ * These frames allow any farcaster account to create a custom own Proof of Crab challenge (series of frame + unique NFT)
+ */
+
 app.frame('/add-frame-to-account', async (c) => {
   try {
     const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
@@ -531,7 +541,7 @@ app.frame('/add-frame-to-account', async (c) => {
     });
   } catch (e: any) {
     console.log(e);
-    return renderError2(c);
+    return renderErrorAddToAccount(c);
   }
 });
 
@@ -608,11 +618,11 @@ app.frame('/add-frame-to-account/custom', async (c) => {
     });
   } catch (e: any) {
     console.log(e);
-    return renderError2(c);
+    return renderErrorAddToAccount(c);
   }
 });
 
-function renderError2(c: FrameContext, frameId?: string) {
+function renderErrorAddToAccount(c: FrameContext, frameId?: string) {
   const action = '/add-frame-to-account';
   return c.res({
     image:
@@ -625,6 +635,47 @@ function getTxUrl(txHash: string): string{
   return `https://lineascan.build/tx/${txHash}`;
 }
 
+
+/**
+ * Proof of Crab SAMPLE GATED CONTENT frames
+ * These frames are standalone frames to illustrate how to token gate a specific content depending on whether you own a specific Proof or not
+ */
+
+app.frame('/gated-example/secret-party', async (c) => {
+  const actionAccessSecretMap = '/gated-example/secret-party/access-secret-map';
+  return c.res({
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-home.png',
+    intents: [
+      <Button action={actionAccessSecretMap}>🗺️ Show me the secret map !</Button>,
+    ],
+  });
+});
+
+app.frame('/gated-example/secret-party/access-secret-map', async (c) => {
+  const { frameData: fid } = c;
+  // for this challenge, we use the default genesis challenge Proof
+  const genesisFrameId = process.env.DEFAULT_POC_FRAME_ID ?? '';
+  const pocFrame = await getPocFrame(genesisFrameId);
+  const challengedUser = await getUserByFid(fid);
+  // check ownership first (no need to create & run new challenge again)
+  const challengedUserOwnsProof = await walletOwnsProof(pocFrame, challengedUser?.custody_address);
+  if(challengedUserOwnsProof){
+    // he's got Proof he's a crab => showing secret map
+    return c.res({
+      image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-secret-map.png',
+      intents: [
+        <Button action='/add-frame-to-account'>➕ Try creating custom Proof Badge</Button>,
+      ],
+    });
+  }
+  // NO Proof he's a crab => inviting to start the challenge and try again later
+  return c.res({
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-no-proofed-crab.png',
+    intents: [
+      <Button action='/proof-of-crab'>▶️ Take the challenge, prove you are a 🦀 !</Button>,
+    ],
+  });
+});
 
 devtools(app, isProduction ? { assetsPath: '/.frog' } : { serveStatic });
 
