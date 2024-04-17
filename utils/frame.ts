@@ -7,7 +7,7 @@ import { generateCustomProofArtwork } from './proof.js';
 export async function generateCustomPocFrameFromDefault(
   defaultPocFrame: ProofOfCrabFrame,
   accountFid: string,
-): Promise<ProofOfCrabFrame> {
+): Promise<any> {
   const accountUser = await getUserByFid(accountFid);
   const phosphorApiKey = await getPocFramePhosphorApiKey(defaultPocFrame.id);
   // generate unique artwork for new Proof
@@ -38,5 +38,5 @@ export async function generateCustomPocFrameFromDefault(
     account_fid: accountFid,
     account_user: accountUser,
   });
-  return newCustomFrame;
+  return { newCustomFrame, nftProofArtworkUrl };
 }

@@ -45,10 +45,10 @@ app.frame('/', async (c) => {
   const actionStartPocFrame = '/proof-of-crab';
   //await generateCustomProofArtwork('12345', 'jhjhjjh', 'lklkklklkkl', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',//  await renderProofMintedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png', //await renderCustomProofGeneratedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
     intents: [
-      <Button action={actionCreatePocFrame}>Create on my account</Button>,
-      <Button action={actionStartPocFrame}>Go to challenge</Button>,
+      <Button action={actionCreatePocFrame}>➕ Add to my account</Button>,
+      <Button action={actionStartPocFrame}>🤖 Start default challenge</Button>,
     ],
   });
 });
@@ -517,12 +517,16 @@ function renderError(c: FrameContext, frameId?: string) {
 
 app.frame('/add-frame-to-account', async (c) => {
   try {
-    const actionInstructions = `/add-frame-to-account/instructions`;
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
+    const actionBack = `/`;
+    const actionCustom = `/add-frame-to-account/custom`;
     return c.res({
       image:
-        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HostOptions.png',
       intents: [
-        <Button action={actionInstructions}>Start using this for your 🦀 needs</Button>,
+        <Button action={actionBack}>Back</Button>,
+        <Button.Link href={hrefDefault}>Use Standard</Button.Link>,
+        <Button action={actionCustom}>Create Custom</Button>,
       ],
     });
   } catch (e: any) {
@@ -531,23 +535,50 @@ app.frame('/add-frame-to-account', async (c) => {
   }
 });
 
-app.frame('/add-frame-to-account/instructions', async (c) => {
-  try {
-    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab`;
-    const actionCustom = `/add-frame-to-account/custom`;
-    return c.res({
-      image:
-        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HostOptions.png',
-      intents: [
-        <Button.Link href={hrefDefault}>Use Standard 🦀 </Button.Link>,
-        <Button action={actionCustom}>Create my Custom one</Button>,
-      ],
-    });
-  } catch (e: any) {
-    console.log(e);
-    return renderError2(c);
-  }
-});
+function renderCustomProofGeneratedImage(nftArtworkUrl: string) {
+  return (
+    <div
+      style={{
+        background: 'black',
+        backgroundSize: '100% 100%',
+        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/ConfirmCustomWide.png)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap: 'nowrap',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        width: '100%',
+      }}
+    >
+      
+      <div style={{display: 'flex', paddingBottom: '173px'}}>
+          <div style={{display: 'flex'}}><img style={{borderRadius: '10px'}} src={nftArtworkUrl} width="200" height="200" /></div>
+      </div>
+      <div
+        style={{
+          color: '#fff',
+          fontSize: 32,
+          fontStyle: 'normal',
+          letterSpacing: '-0.025em',
+          lineHeight: 1.4,
+          marginTop: 30,
+          padding: '0 120px',
+          whiteSpace: 'pre-wrap',
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+        }}
+      >
+        <div style={{display: 'flex'}}>
+          
+        </div>
+      </div>
+    </div>
+  );
+}
 
 //TODO prevent same FID to create a new frame for now. If frame already exists, show a message + buttons to access and use it again
 app.frame('/add-frame-to-account/custom', async (c) => {
@@ -564,16 +595,15 @@ app.frame('/add-frame-to-account/custom', async (c) => {
     if (!allowMultipleForSameFid) {
       //TODO if other frame exists, then return rendered blocker message => you can't create 2 frames
     }
-    const pocFrameClone = await generateCustomPocFrameFromDefault(
+    const pocFrameCloneSummary = await generateCustomPocFrameFromDefault(
       defaultPocFrame,
       fid,
     );
-    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameClone.id}`;
+    const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameCloneSummary.newCustomFrame.id}`;
     return c.res({
-      image:
-        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/ConfirmCustom.png',
+      image: renderCustomProofGeneratedImage(pocFrameCloneSummary.nftProofArtworkUrl),
       intents: [
-        <Button.Link href={hrefDefault}>Share this 🦀 on my account</Button.Link>,
+        <Button.Link href={hrefDefault}>Share my Custom Challenge</Button.Link>,
       ],
     });
   } catch (e: any) {
