@@ -93,6 +93,21 @@ export async function getProofTransaction(
   return transaction;
 }
 
+export async function getItemForFrame(pocFrame: ProofOfCrabFrame) {
+  const phosphorApiKey = await getPocFramePhosphorApiKey(pocFrame.id);
+  const itemResponse = await fetch(
+    `${process.env.PHOSPHOR_URL}/v1/items/${pocFrame.phosphor_proof_item_id}`,
+    {
+      method: 'GET',
+      headers: buildHeader(phosphorApiKey ?? process.env.PHOSPHOR_APIKEY),
+    },
+  );
+  checkForErrors(itemResponse);
+  const item = await itemResponse.json();
+  //console.log(JSON.stringify(item));
+  return item;
+}
+
 export async function checkOwnership(
   pocFrame: ProofOfCrabFrame,
   walletAddress: string,

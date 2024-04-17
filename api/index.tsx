@@ -13,6 +13,7 @@ import { buildNewChallenge, getPreviousQuestion } from '../utils/challenge.js';
 import { ProofOfCrabChallenge } from '../domain/poc-challenge.js';
 import {
   checkOwnership,
+  getItemForFrame,
   getProofTransaction,
   mintProof,
 } from '../utils/phosphor.js';
@@ -20,7 +21,6 @@ import { generateCustomPocFrameFromDefault } from '../utils/frame.js';
 import { stayIdle } from '../utils/idle.js';
 import { FarcasterUser } from '../domain/farcaster-user.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
-//import { generateCustomProofArtwork } from '../utils/proof.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -45,7 +45,7 @@ app.frame('/', async (c) => {
   const actionStartPocFrame = '/proof-of-crab';
   //await generateCustomProofArtwork('12345', 'jhjhjjh', 'lklkklklkkl', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',
+    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png',//  await renderProofMintedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
     intents: [
       <Button action={actionCreatePocFrame}>Create on my account</Button>,
       <Button action={actionStartPocFrame}>Go to challenge</Button>,
@@ -64,7 +64,7 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
         flexDirection: 'column',
         flexWrap: 'nowrap',
         height: '100%',
-        alignItems: 'center',
+        //alignItems: 'center',
         justifyContent: 'flex-end',
         textAlign: 'center',
         width: '100%',
@@ -78,7 +78,7 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
           letterSpacing: '-0.025em',
           lineHeight: 1.4,
           marginTop: 30,
-          padding: '0 120px',
+          paddingBottom: '20px',
           whiteSpace: 'pre-wrap',
           display: 'flex',
           flexDirection: 'row',
@@ -86,13 +86,20 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
           alignItems: 'flex-start',
         }}
       >
-        <div style={{display: 'flex'}}>
-        <div style={{display: 'flex'}}><img style={{borderRadius: '9999px'}} src={accountUser?.pfp_url} width="100" height="100" /></div>
-
-        </div>
-        <div style={{display: 'flex', flexDirection: 'column', paddingLeft: '30px'}}>
-          <div style={{display: 'flex'}}>{accountUser?.display_name}</div>
-          <div style={{display: 'flex'}}>@{accountUser?.username}</div>
+        <div style={{display: 'flex', alignItems: 'center'}}>
+          <div style={{display: 'flex', flexDirection: 'column'}}>
+            <div style={{display: 'flex', fontSize: 24}}>Take the challenge!</div>
+            <div style={{display: 'flex', fontSize: 24}}>Get soulbound proof from:</div>
+          </div>
+          <div style={{display: 'flex', paddingLeft: '25px', alignItems: 'center'}}>
+            <div style={{display: 'flex'}}>
+              <div style={{display: 'flex'}}><img style={{borderRadius: '9999px'}} src={accountUser?.pfp_url} width="75" height="75" /></div>
+            </div>
+            <div style={{display: 'flex', flexDirection: 'column', paddingLeft: '15px', fontSize: 18}}>
+              <div style={{display: 'flex'}}>{accountUser?.display_name}</div>
+              <div style={{display: 'flex'}}>@{accountUser?.username}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -346,15 +353,61 @@ function renderProofMinted(
   c: FrameContext,
   challenge: ProofOfCrabChallenge,
   proofPageUrl: string,
+  phosphorItemArtworkUrl: string,
 ) {
-  const phosphorUrl = 'https://phosphor.xyz/';
+  const phosphorUrl = 'https://phosphor.xyz';
   const shareChallengeUrl = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${challenge.frame_id}`
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/MintSuccess.png',
-    intents: [<Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>, 
-    <Button.Link href={shareChallengeUrl}>Share this challenge</Button.Link>,
+    image: renderProofMintedImage(phosphorItemArtworkUrl),
+    intents: [<Button.Link href={proofPageUrl}>View Badge</Button.Link>, 
+    <Button.Link href={shareChallengeUrl}>Share</Button.Link>,
     <Button.Link href={phosphorUrl}>Try Phosphor</Button.Link>],
   });
+}
+
+function renderProofMintedImage(nftArtworkUrl: string) {
+  return (
+    <div
+      style={{
+        background: 'black',
+        backgroundSize: '100% 100%',
+        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/MintSuccessWide.png)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap: 'nowrap',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        width: '100%',
+      }}
+    >
+      
+      <div style={{display: 'flex', paddingBottom: '210px', paddingRight: '70px'}}>
+          <div style={{display: 'flex'}}><img style={{borderRadius: '10px', boxShadow: '10px 10px 5px darkgray'}} src={nftArtworkUrl} width="200" height="200" /></div>
+      </div>
+      <div
+        style={{
+          color: '#fff',
+          fontSize: 32,
+          fontStyle: 'normal',
+          letterSpacing: '-0.025em',
+          lineHeight: 1.4,
+          marginTop: 30,
+          padding: '0 120px',
+          whiteSpace: 'pre-wrap',
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+        }}
+      >
+        <div style={{display: 'flex'}}>
+          
+        </div>
+      </div>
+    </div>
+  );
 }
 
 app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
@@ -398,11 +451,12 @@ app.frame(
         `tx: ${challenge.mint_tx_id}, status: ${mintTx.state}, hash: ${mintTx.tx_hash}, error: ${mintTx.error_message}`,
       );
       if (mintTx.state === 'COMPLETED') {
+        const phosphorItem = await getItemForFrame(pocFrame);
         return renderProofMinted(
           c,
           challenge,
-          mintTx.tx_hash,
           pocFrame.phosphor_proof_url,
+          phosphorItem?.media.image.thumb,
         );
       } else if (mintTx.state === 'CANCELLED') {
         throw new Error(`Proof mint tx ${challenge.mint_tx_id} was cancelled`);
