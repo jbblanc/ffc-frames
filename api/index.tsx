@@ -3,6 +3,7 @@ import { devtools } from 'frog/dev';
 import { serveStatic } from 'frog/serve-static';
 import { neynar } from 'frog/hubs';
 import { handle } from 'frog/vercel';
+import { readFile } from 'node:fs/promises';
 import {
   getPocChallenge,
   getPocFrame,
@@ -37,6 +38,18 @@ export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
   imageAspectRatio: '1:1',
+  imageOptions: {
+    fonts: [{
+      name: 'Quicksand',
+      data: isProduction
+          ? await fetch(`${process.env.BASE_URL}/Quicksand-SemiBold.ttf`).then(
+              (res) => res.arrayBuffer(),
+            )
+          : await readFile('./public/Quicksand-SemiBold.ttf'),
+        weight: 400,
+        style: 'normal',
+    }]
+  },
   verify: isProduction,
   hub: neynar({ apiKey: process.env.NEYNAR_APIKEY ?? '' }),
 });
@@ -51,7 +64,8 @@ app.frame('/', async (c) => {
   const actionStartPocFrame = '/proof-of-crab';
   //await generateCustomProofArtwork('12345', '@jbb_consensys', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png', //await renderCustomProofGeneratedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png', //await renderCustomProofGeneratedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
     intents: [
       <Button action={actionCreatePocFrame}>➕ Add to my account</Button>,
       <Button action={actionStartPocFrame}>🤖 Start default challenge</Button>,
@@ -70,7 +84,8 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
       style={{
         background: 'black',
         backgroundSize: '100% 100%',
-        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabStartWide.png)',
+        backgroundImage:
+          'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabStartWide.png)',
         display: 'flex',
         flexDirection: 'column',
         flexWrap: 'nowrap',
@@ -84,9 +99,9 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
       <div
         style={{
           color: '#fff',
-          fontSize: 32,
+          fontSize: 24,
           fontStyle: 'normal',
-          letterSpacing: '-0.025em',
+          fontWeight: 'bold',
           lineHeight: 1.4,
           marginTop: 30,
           paddingBottom: '20px',
@@ -97,26 +112,24 @@ function renderPocFrameHomeImage(accountUser: FarcasterUser) {
           alignItems: 'flex-start',
         }}
       >
-        <div style={{display: 'flex', alignItems: 'center'}}>
-          <div style={{display: 'flex', flexDirection: 'column'}}>
-            <div style={{display: 'flex', fontSize: 24}}>Take the challenge!</div>
-            <div style={{display: 'flex', fontSize: 24}}>Get soulbound proof from:</div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex' }}>
+            Take the challenge from
           </div>
-          <div style={{display: 'flex', paddingLeft: '25px', alignItems: 'center'}}>
-            <div style={{display: 'flex'}}>
-              <div style={{display: 'flex'}}><img style={{borderRadius: '9999px'}} src={accountUser?.pfp_url} width="75" height="75" /></div>
-            </div>
-            <div style={{display: 'flex', flexDirection: 'column', paddingLeft: '15px', fontSize: 18}}>
-              <div style={{display: 'flex'}}>{accountUser?.display_name}</div>
-              <div style={{display: 'flex'}}>@{accountUser?.username}</div>
-            </div>
+          <div style={{ display: 'flex', marginLeft: '20px', marginRight: '10px' }}>
+            <img
+              style={{ borderRadius: '9999px', border: '2px', borderColor: 'white' }}
+              src={accountUser?.pfp_url}
+              width="75"
+              height="75"
+            />
           </div>
+          <div style={{ display: 'flex' }}>@{accountUser?.username}</div>
         </div>
       </div>
     </div>
   );
 }
-
 
 app.frame('/proof-of-crab', handlePocFrameHome);
 
@@ -163,11 +176,15 @@ app.frame('/proof-of-crab/:frameId/instructions', async (c) => {
   }
 });
 
-function renderPocFrameInstructions(c: FrameContext, pocFrame: ProofOfCrabFrame) {
+function renderPocFrameInstructions(
+  c: FrameContext,
+  pocFrame: ProofOfCrabFrame,
+) {
   const backAction = `/proof-of-crab/${pocFrame.id}`;
   const startAction = `/proof-of-crab/${pocFrame.id}/new-challenge`;
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HowtoPlay.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/HowtoPlay.png',
     intents: [
       <Button action={backAction}>Back</Button>,
       <Button action={startAction}>▶️ Start</Button>,
@@ -182,7 +199,8 @@ function renderProofAlreadyOwned(
 ) {
   const action = frameId ? `/${frameId}` : '/';
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabApproved.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabApproved.png',
     intents: [
       <Button action={action}>Back to Home</Button>,
       <Button.Link href={proofPageUrl}>View my 🦀 Proof</Button.Link>,
@@ -201,7 +219,10 @@ app.frame('/proof-of-crab/:frameId/new-challenge', async (c) => {
     const challengedUser = await getUserByFid(fid);
     const pocFrame = await getPocFrame(frameId);
     // check ownership first (no need to create & run new challenge again)
-    const alreadyOwnsProof = await walletOwnsProof(pocFrame, challengedUser?.custody_address);
+    const alreadyOwnsProof = await walletOwnsProof(
+      pocFrame,
+      challengedUser?.custody_address,
+    );
     if (alreadyOwnsProof && !ignoreOwnershipCheck) {
       return renderProofAlreadyOwned(
         c,
@@ -345,9 +366,10 @@ function renderProofMintInProgress(
 ) {
   const actionRefreshMintStatus = `/proof-of-crab/challenge/${challenge.id}/proof-mint-in-progress`;
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabMinting.png',
     intents: [
-      (mintTxHash !== undefined && mintTxHash !== null) && (
+      mintTxHash !== undefined && mintTxHash !== null && (
         <Button.Link href={getTxUrl(mintTxHash)}>View Mint Tx</Button.Link>
       ),
       <Button action={actionRefreshMintStatus}>🔁 Refresh status</Button>,
@@ -362,12 +384,14 @@ function renderProofMinted(
   phosphorItemArtworkUrl: string,
 ) {
   const phosphorUrl = 'https://phosphor.xyz';
-  const shareChallengeUrl = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${challenge.frame_id}`
+  const shareChallengeUrl = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${challenge.frame_id}`;
   return c.res({
     image: renderProofMintedImage(phosphorItemArtworkUrl),
-    intents: [<Button.Link href={proofPageUrl}>View Badge</Button.Link>, 
-    <Button.Link href={shareChallengeUrl}>Share</Button.Link>,
-    <Button.Link href={phosphorUrl}>Try Phosphor</Button.Link>],
+    intents: [
+      <Button.Link href={proofPageUrl}>View Badge</Button.Link>,
+      <Button.Link href={shareChallengeUrl}>Share</Button.Link>,
+      <Button.Link href={phosphorUrl}>Try Phosphor</Button.Link>,
+    ],
   });
 }
 
@@ -377,7 +401,8 @@ function renderProofMintedImage(nftArtworkUrl: string) {
       style={{
         background: 'black',
         backgroundSize: '100% 100%',
-        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/MintSuccessWide.png)',
+        backgroundImage:
+          'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/MintSuccessWide.png)',
         display: 'flex',
         flexDirection: 'column',
         flexWrap: 'nowrap',
@@ -388,9 +413,25 @@ function renderProofMintedImage(nftArtworkUrl: string) {
         width: '100%',
       }}
     >
-      
-      <div style={{display: 'flex', paddingBottom: '195px', paddingRight: '70px'}}>
-          <div style={{display: 'flex'}}><img style={{borderRadius: '10px', border: '4px', borderColor: 'white'}} src={nftArtworkUrl} width="220" height="220" /></div>
+      <div
+        style={{
+          display: 'flex',
+          paddingBottom: '195px',
+          paddingRight: '70px',
+        }}
+      >
+        <div style={{ display: 'flex' }}>
+          <img
+            style={{
+              borderRadius: '10px',
+              border: '4px',
+              borderColor: 'white',
+            }}
+            src={nftArtworkUrl}
+            width="220"
+            height="220"
+          />
+        </div>
       </div>
       <div
         style={{
@@ -408,9 +449,7 @@ function renderProofMintedImage(nftArtworkUrl: string) {
           alignItems: 'flex-start',
         }}
       >
-        <div style={{display: 'flex'}}>
-          
-        </div>
+        <div style={{ display: 'flex' }}></div>
       </div>
     </div>
   );
@@ -418,14 +457,18 @@ function renderProofMintedImage(nftArtworkUrl: string) {
 
 app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
   try {
-    const defaultWallet = !isProduction ? (process.env.DEFAULT_TEST_WALLET ?? '') : '';// default wallet only when testing
+    const defaultWallet = !isProduction
+      ? process.env.DEFAULT_TEST_WALLET ?? ''
+      : ''; // default wallet only when testing
     const { challengeId } = c.req.param();
     if (!challengeId) {
       throw new Error('Challenge not found');
     }
     let challenge = await getPocChallenge(challengeId);
-    if(isProduction && !challenge?.user?.custody_address){
-      throw new Error(`No farcaster wallet associated to this challenge ${challengeId}`);
+    if (isProduction && !challenge?.user?.custody_address) {
+      throw new Error(
+        `No farcaster wallet associated to this challenge ${challengeId}`,
+      );
     }
     const pocFrame = await getPocFrame(challenge.frame_id);
     const phosphorTxId = await mintProof(
@@ -555,7 +598,8 @@ function renderCustomProofGeneratedImage(nftArtworkUrl: string) {
       style={{
         background: 'black',
         backgroundSize: '100% 100%',
-        backgroundImage: 'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/ConfirmCustomWide.png)',
+        backgroundImage:
+          'url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/ConfirmCustomWide.png)',
         display: 'flex',
         flexDirection: 'column',
         flexWrap: 'nowrap',
@@ -566,9 +610,15 @@ function renderCustomProofGeneratedImage(nftArtworkUrl: string) {
         width: '100%',
       }}
     >
-      
-      <div style={{display: 'flex', paddingBottom: '173px'}}>
-          <div style={{display: 'flex'}}><img style={{borderRadius: '10px'}} src={nftArtworkUrl} width="200" height="200" /></div>
+      <div style={{ display: 'flex', paddingBottom: '173px' }}>
+        <div style={{ display: 'flex' }}>
+          <img
+            style={{ borderRadius: '10px' }}
+            src={nftArtworkUrl}
+            width="200"
+            height="200"
+          />
+        </div>
       </div>
       <div
         style={{
@@ -586,9 +636,7 @@ function renderCustomProofGeneratedImage(nftArtworkUrl: string) {
           alignItems: 'flex-start',
         }}
       >
-        <div style={{display: 'flex'}}>
-          
-        </div>
+        <div style={{ display: 'flex' }}></div>
       </div>
     </div>
   );
@@ -615,7 +663,9 @@ app.frame('/add-frame-to-account/custom', async (c) => {
     );
     const hrefDefault = `https://warpcast.com/~/compose?embeds[]=${process.env.BASE_URL}/api/proof-of-crab/${pocFrameCloneSummary.newCustomFrame.id}`;
     return c.res({
-      image: renderCustomProofGeneratedImage(pocFrameCloneSummary.nftProofArtworkUrl),
+      image: renderCustomProofGeneratedImage(
+        pocFrameCloneSummary.nftProofArtworkUrl,
+      ),
       intents: [
         <Button.Link href={hrefDefault}>Share my Custom Challenge</Button.Link>,
       ],
@@ -635,10 +685,9 @@ function renderErrorAddToAccount(c: FrameContext, frameId?: string) {
   });
 }
 
-function getTxUrl(txHash: string): string{
+function getTxUrl(txHash: string): string {
   return `https://lineascan.build/tx/${txHash}`;
 }
-
 
 /**
  * Proof of Crab SAMPLE GATED CONTENT frames
@@ -648,9 +697,12 @@ function getTxUrl(txHash: string): string{
 app.frame('/gated-example/secret-party', async (c) => {
   const actionAccessSecretMap = '/gated-example/secret-party/access-secret-map';
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-home.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-home.png',
     intents: [
-      <Button action={actionAccessSecretMap}>🗺️ Show me the secret map !</Button>,
+      <Button action={actionAccessSecretMap}>
+        🗺️ Show me the secret map !
+      </Button>,
     ],
   });
 });
@@ -663,21 +715,30 @@ app.frame('/gated-example/secret-party/access-secret-map', async (c) => {
   const pocFrame = await getPocFrame(genesisFrameId);
   const challengedUser = await getUserByFid(fid);
   // check ownership first (no need to create & run new challenge again)
-  const challengedUserOwnsProof = await walletOwnsProof(pocFrame, challengedUser?.custody_address);
-  if(challengedUserOwnsProof){
+  const challengedUserOwnsProof = await walletOwnsProof(
+    pocFrame,
+    challengedUser?.custody_address,
+  );
+  if (challengedUserOwnsProof) {
     // he's got Proof he's a crab => showing secret map
     return c.res({
-      image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-secret-map.png',
+      image:
+        'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-secret-map.png',
       intents: [
-        <Button action='/add-frame-to-account'>➕ Try creating custom Proof Badge</Button>,
+        <Button action="/add-frame-to-account">
+          ➕ Try creating custom Proof Badge
+        </Button>,
       ],
     });
   }
   // NO Proof he's a crab => inviting to start the challenge and try again later
   return c.res({
-    image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-no-proofed-crab.png',
+    image:
+      'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/secret-party-no-proofed-crab.png',
     intents: [
-      <Button action='/proof-of-crab'>▶️ Take the challenge, prove you are a 🦀 !</Button>,
+      <Button action="/proof-of-crab">
+        ▶️ Take the challenge, prove you are a 🦀 !
+      </Button>,
     ],
   });
 });
