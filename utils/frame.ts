@@ -14,7 +14,6 @@ export async function generateCustomPocFrameFromDefault(
   const nftProofArtworkUrl = await generateCustomProofArtwork(
     accountFid,
     accountUser?.username,
-    accountUser?.display_name,
     accountUser?.pfp_url,
   );
   // setup new NFT

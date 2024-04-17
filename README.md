@@ -9,7 +9,9 @@ Cast the root frame and start using it in Warpcast : [Cast to Warpcast](https://
 
 Web App: Head to [Proof of Crab](https://ffc-proof-of-crab-app.vercel.app)
 
-This app uses a [Supabase](https://supabase.com/) backend and runs with [Vercel](https://vercel.com/).
+This app uses [Frog](https://frog.fm) framework, a [Supabase](https://supabase.com) backend and runs with [Vercel](https://vercel.com).
+
+The following Consensys products are intensively used by the frame(s) : [Phosphor](https://www.phosphor.xyz), [Linea](https://linea.build), [Infura](https://www.infura.io) - via Phosphor
 
 ## Running locally
 

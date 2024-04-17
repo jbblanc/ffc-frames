@@ -1,7 +1,7 @@
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { html } from 'satori-html';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { supabase } from './supabase.js';
 
 // @ts-ignore
@@ -11,25 +11,21 @@ const isProduction = isEdgeFunction || import.meta.env?.MODE !== 'development';
 export async function generateCustomProofArtwork(
   accountFid: string,
   accountHandle?: string,
-  accountDisplayName?: string,
   accountPfpUrl?: string,
 ): Promise<string> {
-  /*const template = html(`
-<div style="display: flex; flex-flow: column nowrap; align-items: stretch; width: 600px; height: 600px; backgroundImage: linear-gradient(to right, #0f0c29, #302b63, #24243e); color: #000;">
-  <div style="display: flex; flex: 1 0; flex-flow: row nowrap; justify-content: center; align-items: center;">
-    <img style="border: 8px solid rgba(255, 255, 255, 0.2); border-radius: 50%;" src="https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png" alt="animals" />
-  </div>
-  <div style="display: flex; justify-content: center; align-items: center; margin: 6px; padding: 12px; border-radius: 4px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 22px;">
-    The quick brown fox jumps over the lazy dog.
-  </div>
-</div>
-`);*/
   const template = html(`
-<div style="display: flex; flex-flow: column nowrap; align-items: center; justify-content: flex-start; width: 2400px; height: 2400px; background-size: 100% 100%; background-image: url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabPass.png);">
-  <div style="width: 100%; height: 100%; display: flex; justify-content: flex-start; align-items: center; margin: 6px; padding: 50px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: red; font-size: 72px;">
-    <div>${accountHandle}</div>
-    <img style="border-radius: 9999px;" src="${accountPfpUrl}" width="100" height="100" />
-    <div>${accountDisplayName}</div>
+<div style="display: flex; flex-flow: column nowrap; align-items: center; justify-content: flex-start; width: 2400px; height: 2400px; background-size: 100% 100%; background-image: url(https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/CrabProofCustom.png);">
+  <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 60px; color: white; text-transform: uppercase; font-size: 80px">
+    <div style="display: flex; align-items: center;">  
+        <div style="display: flex;">You passed</div>
+        <div style="display: flex; margin-left:50px; margin-right: 50px;">
+          <img style="border-radius: 9999px; border: 10px; border-color: white;" src="${accountPfpUrl}" width="200" height="200" />
+        </div>
+        <div style="display: flex;">
+          ${accountHandle}'s
+        </div>
+        <div style="display: flex; margin-left: 50px;">challenge!</div>
+    </div>
   </div>
 </div>
 `);
@@ -38,12 +34,12 @@ export async function generateCustomProofArtwork(
     height: 2400,
     fonts: [
       {
-        name: 'Roboto',
+        name: 'Quicksand',
         data: isProduction
-          ? await fetch(`${process.env.BASE_URL}/Roboto-Medium.ttf`).then(
+          ? await fetch(`${process.env.BASE_URL}/Quicksand-SemiBold.ttf`).then(
               (res) => res.arrayBuffer(),
             )
-          : await readFile('./public/Roboto-Medium.ttf'),
+          : await readFile('./public/Quicksand-SemiBold.ttf'),
         weight: 400,
         style: 'normal',
       },
@@ -51,7 +47,6 @@ export async function generateCustomProofArtwork(
   });
   //console.log(svg);
   const resvg = new Resvg(svg, {
-    background: 'rgba(238, 235, 230, .9)',
     dpi: 300,
     fitTo: {
       mode: 'original',
@@ -63,6 +58,7 @@ export async function generateCustomProofArtwork(
   const pngData = resvg.render();
   const pngBuffer = pngData.asPng();
   const pngArtworkFileName = `proof-${accountFid}.png`;
+  //await writeFile(pngArtworkFileName, pngBuffer); //TODO remove me !!
   const artworkPublicUrl = await uploadProofArtwork(
     pngArtworkFileName,
     pngBuffer,

@@ -22,6 +22,7 @@ import { stayIdle } from '../utils/idle.js';
 import { FarcasterUser } from '../domain/farcaster-user.js';
 import { ProofOfCrabFrame } from '../domain/poc-frame.js';
 import { getUserByFid } from '../utils/neynar.js';
+import { generateCustomProofArtwork } from '../utils/proof.js';
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -48,7 +49,7 @@ export const app = new Frog({
 app.frame('/', async (c) => {
   const actionCreatePocFrame = '/add-frame-to-account';
   const actionStartPocFrame = '/proof-of-crab';
-  //await generateCustomProofArtwork('12345', 'jhjhjjh', 'lklkklklkkl', 'https://i.imgur.com/SnObVa5.jpg');
+  //await generateCustomProofArtwork('12345', '@jbb_consensys', 'https://i.imgur.com/SnObVa5.jpg');
   return c.res({
     image: 'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png', //await renderCustomProofGeneratedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),
     intents: [
