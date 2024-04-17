@@ -119,6 +119,11 @@ export async function walletOwnsProof(
   if (!walletAddress) return false;
   let ownerPage: any;
   do {
+    console.log(
+      `requesting cursor ${
+        ownerPage ? ownerPage.cursor : undefined
+      } for ownership`,
+    );
     ownerPage = await getNextOwnersPageForItem(
       pocFrame.phosphor_proof_item_id,
       ownerPage ? ownerPage.cursor : undefined,
