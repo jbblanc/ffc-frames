@@ -113,6 +113,9 @@ export async function walletOwnsProof(
   walletAddress: string,
   minQuantityOwned = 1,
 ): Promise<boolean> {
+  console.log(
+    `checking ownership of ${pocFrame.phosphor_proof_item_id} in ${walletAddress}`,
+  );
   if (!walletAddress) return false;
   let ownerPage: any;
   do {

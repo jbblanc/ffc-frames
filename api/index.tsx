@@ -658,6 +658,9 @@ app.frame('/gated-example/secret-party/access-secret-map', async (c) => {
   const pocFrame = await getPocFrame(genesisFrameId);
   const challengedUser = await getUserByFid(fid);
   // check ownership first (no need to create & run new challenge again)
+  console.log(
+    `about to check ownership of ${pocFrame.phosphor_proof_item_id} in ${challengedUser?.custody_address}`,
+  );
   const challengedUserOwnsProof = await walletOwnsProof(pocFrame, challengedUser?.custody_address);
   if(challengedUserOwnsProof){
     // he's got Proof he's a crab => showing secret map
