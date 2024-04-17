@@ -128,6 +128,9 @@ export async function walletOwnsProof(
       pocFrame.phosphor_proof_item_id,
       ownerPage ? ownerPage.cursor : undefined,
     );
+    console.log(
+      `total records ${ownerPage.results?.length} for ownership page`,
+    );
     const owner = ownerPage.results?.filter(
       (o: any) => o.address.toLowerCase() === walletAddress.toLowerCase(),
     );
