@@ -417,12 +417,15 @@ function renderProofMintedImage(nftArtworkUrl: string) {
 
 app.frame('/proof-of-crab/challenge/:challengeId/mint-proof', async (c) => {
   try {
-    const defaultWallet = process.env.DEFAULT_TEST_WALLET ?? '';
+    const defaultWallet = !isProduction ? (process.env.DEFAULT_TEST_WALLET ?? '') : '';// default wallet only when testing
     const { challengeId } = c.req.param();
     if (!challengeId) {
       throw new Error('Challenge not found');
     }
     let challenge = await getPocChallenge(challengeId);
+    if(isProduction && !challenge?.user?.custody_address){
+      throw new Error(`No farcaster wallet associated to this challenge ${challengeId}`);
+    }
     const pocFrame = await getPocFrame(challenge.frame_id);
     const phosphorTxId = await mintProof(
       pocFrame,
