@@ -389,8 +389,8 @@ function renderProofMintedImage(nftArtworkUrl: string) {
       }}
     >
       
-      <div style={{display: 'flex', paddingBottom: '200px', paddingRight: '70px'}}>
-          <div style={{display: 'flex'}}><img style={{borderRadius: '10px', border: '4px', borderColor: 'white'}} src={nftArtworkUrl} width="212" height="212" /></div>
+      <div style={{display: 'flex', paddingBottom: '195px', paddingRight: '70px'}}>
+          <div style={{display: 'flex'}}><img style={{borderRadius: '10px', border: '4px', borderColor: 'white'}} src={nftArtworkUrl} width="220" height="220" /></div>
       </div>
       <div
         style={{
