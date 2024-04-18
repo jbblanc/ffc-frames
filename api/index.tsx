@@ -61,7 +61,7 @@ export const app = new Frog({
 app.frame('/', async (c) => {
   const actionCreatePocFrame = '/add-frame-to-account';
   const actionStartPocFrame = '/proof-of-crab';
-  //await generateCustomProofArtwork('12345', '@jbb_consensys', 'https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/3ec38af9-aad1-40bd-9366-b34c4dda9900/rectcrop3');
+  //await generateCustomProofArtwork('12345', 'jbb_consensys', 'https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/3ec38af9-aad1-40bd-9366-b34c4dda9900/rectcrop3');
   return c.res({
     image:
       'https://jopwkvlrcjvsluwgyjkm.supabase.co/storage/v1/object/public/poc-images/GrabHome.png', //await renderCustomProofGeneratedImage('https://media-resize-prod.consensys-nft.com/resize/?cid=Qmd2KPgHb8JqVJ7PPZ6kJFKMdsehy6v3CQ6KFfPeA3vaJd&image=data.png&size=thumb'),

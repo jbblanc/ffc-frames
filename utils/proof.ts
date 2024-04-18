@@ -22,7 +22,7 @@ export async function generateCustomProofArtwork(
           <img style="border-radius: 9999px; border: 10px; border-color: white; object-fit: cover; aspect-ratio: 1 / 1;" src="${accountPfpUrl}" width="200" height="200" />
         </div>
         <div style="display: flex;">
-          ${accountHandle}'s
+          @${accountHandle}'s
         </div>
         <div style="display: flex; margin-left: 50px;">challenge!</div>
     </div>
