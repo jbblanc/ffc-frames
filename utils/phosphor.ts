@@ -18,7 +18,7 @@ export async function addNewPocFrameItem(
       collection_id: defaultPocFrame.phosphor_proof_collection_id,
       attributes: {
         title: `${accountUser?.display_name}'s Proof of Crab`,
-        description: `This is a proof of crab that certifying that its holder is a valid crab of ${accountUser?.display_name}'s crabs community`,
+        description: `This is a proof of crab, certifying that its holder is a real crab of ${accountUser?.display_name}'s crabs community`,
         image_url: nftProofArtworkUrl,
         fid: accountFid,
         username: accountUser?.username,

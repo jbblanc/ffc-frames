@@ -19,7 +19,7 @@ export async function generateCustomProofArtwork(
     <div style="display: flex; align-items: center;">  
         <div style="display: flex;">You passed</div>
         <div style="display: flex; margin-left:50px; margin-right: 50px;">
-          <img style="border-radius: 9999px; border: 10px; border-color: white;" src="${accountPfpUrl}" width="200" height="200" />
+          <img style="border-radius: 9999px; border: 10px; border-color: white; object-fit: cover; aspect-ratio: 1 / 1;" src="${accountPfpUrl}" width="200" height="200" />
         </div>
         <div style="display: flex;">
           ${accountHandle}'s
